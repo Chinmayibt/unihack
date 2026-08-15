@@ -1,0 +1,20 @@
+{
+  "manufacturers": {
+    "Freud Inc": ["freudtools.com", "diablotools.com"],
+    "3 M Co": ["3m.com"],
+    "Black & Decker/dewlt": ["dewalt.com", "blackanddecker.com"],
+    "Bosch": ["boschtools.com", "bosch.com"],
+    "Milwaukee Electric Tool": ["milwaukeetool.com"],
+    "Makita U S A Inc": ["makitatools.com", "makita.com"],
+    "Amana Tool Corp": ["amanatool.com"],
+    "CMT USA Inc": ["cmtorangetools.com"]
+  },
+  "brands": {
+    "Diablo": ["diablotools.com", "freudtools.com"],
+    "DeWalt": ["dewalt.com"],
+    "Milwaukee": ["milwaukeetool.com"],
+    "Makita": ["makitatools.com", "makita.com"],
+    "3M": ["3m.com"],
+    "Bosch": ["boschtools.com"]
+  }
+}

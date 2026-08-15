@@ -1,0 +1,50 @@
+{
+  "comment": "Canonical codes follow the delivery-format UOMs (in, V, A, dBA) plus Unilog-style each/pack aliases. Replace with Unilog_Master_UOM_Standards_and_Abbreviations.xlsx when that workbook is available.",
+  "units": [
+    {
+      "code": "in",
+      "name": "Inch",
+      "aliases": ["in", "in.", "inch", "inches", "\"", "”", "″"]
+    },
+    {
+      "code": "ft",
+      "name": "Foot",
+      "aliases": ["ft", "ft.", "foot", "feet", "'"]
+    },
+    {
+      "code": "mm",
+      "name": "Millimeter",
+      "aliases": ["mm", "millimeter", "millimeters"]
+    },
+    {
+      "code": "cm",
+      "name": "Centimeter",
+      "aliases": ["cm", "centimeter", "centimeters"]
+    },
+    {
+      "code": "V",
+      "name": "Volt",
+      "aliases": ["v", "volt", "volts", "vac"]
+    },
+    {
+      "code": "A",
+      "name": "Ampere",
+      "aliases": ["a", "amp", "amps", "ampere", "amperes"]
+    },
+    {
+      "code": "dBA",
+      "name": "A-Weighted Decibel",
+      "aliases": ["dba", "db(a)"]
+    },
+    {
+      "code": "EA",
+      "name": "Each",
+      "aliases": ["ea", "each", "pc", "pcs", "piece", "pieces"]
+    },
+    {
+      "code": "PK",
+      "name": "Pack",
+      "aliases": ["pk", "pack", "packs"]
+    }
+  ]
+}

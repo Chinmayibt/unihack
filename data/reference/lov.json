@@ -1,0 +1,51 @@
+{
+  "comment": "Attribute LOVs from the labelled delivery format plus conservative aliases. Product Type is resolved from taxonomy at runtime. Replace with Unicat_Lov_v1_0_Updated_With_Remarks.xlsx when available.",
+  "attributes": {
+    "Abrasive Material": [
+      {
+        "canonical": "Aluminum Oxide",
+        "aliases": ["aluminum oxide", "aluminium oxide", "al oxide", "aluminum oxide blend", "premium aluminum oxide blend"]
+      },
+      {
+        "canonical": "Ceramic",
+        "aliases": ["ceramic", "ceramic alumina", "ceramic blend", "ceramic grain", "ceramic grain blend", "premium ceramic blend", "premium ceramic grain blend"]
+      },
+      {
+        "canonical": "Silicon Carbide",
+        "aliases": ["silicon carbide", "sic"]
+      }
+    ],
+    "Material": [
+      {
+        "canonical": "Stainless Steel",
+        "aliases": ["stainless steel", "sst", "ss", "stainless"]
+      },
+      {
+        "canonical": "Brass",
+        "aliases": ["brass", "brs", "brass construction", "brass material"]
+      },
+      {
+        "canonical": "Aluminum Oxide",
+        "aliases": ["aluminum oxide", "aluminium oxide", "al oxide", "aluminum oxide grain", "aluminum oxide blend", "premium aluminum oxide blend"]
+      },
+      {
+        "canonical": "Ceramic",
+        "aliases": ["ceramic", "ceramic alumina", "ceramic blend", "ceramic grain", "ceramic grain blend", "premium ceramic blend", "premium ceramic grain blend"]
+      },
+      {
+        "canonical": "Silicon Carbide",
+        "aliases": ["silicon carbide", "sic"]
+      }
+    ],
+    "Mounting Type": [
+      {
+        "canonical": "Leg",
+        "aliases": ["leg", "leg mounting"]
+      },
+      {
+        "canonical": "Built-in",
+        "aliases": ["built-in", "builtin", "built in"]
+      }
+    ]
+  }
+}

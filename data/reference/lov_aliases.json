@@ -1,0 +1,90 @@
+{
+  "comment": "Approved raw→canonical LOV mappings. Keys are matched with canonical_lov_key (case/whitespace only). Do not add zirconia, metal, Bonded Abrasive, or bare Type 1.",
+  "aliases": [
+    {
+      "attribute": "Material",
+      "raw_value": "aluminum oxide grain",
+      "canonical_value": "Aluminum Oxide"
+    },
+    {
+      "attribute": "Material",
+      "raw_value": "aluminum oxide blend",
+      "canonical_value": "Aluminum Oxide"
+    },
+    {
+      "attribute": "Abrasive Material",
+      "raw_value": "aluminum oxide grain",
+      "canonical_value": "Aluminum Oxide"
+    },
+    {
+      "attribute": "Material",
+      "raw_value": "ceramic blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Material",
+      "raw_value": "premium ceramic blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Abrasive Material",
+      "raw_value": "ceramic grain blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Abrasive Material",
+      "raw_value": "premium ceramic grain blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Material",
+      "raw_value": "ceramic grain blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Material",
+      "raw_value": "premium ceramic grain blend",
+      "canonical_value": "Ceramic"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "metal cut off wheel",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "metal cut off wheel - type 1",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "masonry cut off wheel",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "masonry cut off wheel - type 1",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "masonry cut off wheel -type 1",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "performance+ metal cut off wheel",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "cut off wheel",
+      "canonical_value": "Cut-Off Discs"
+    },
+    {
+      "attribute": "Product Type",
+      "raw_value": "cut-off & grinding discs",
+      "canonical_value": "Cut-Off Discs"
+    }
+  ]
+}
