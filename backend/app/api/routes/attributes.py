@@ -9,6 +9,8 @@ from app.schemas.attribute import AttributeExtractionResponse, ExtractionMetrics
 from app.schemas.normalized_attribute import NormalizationResponse
 from app.services.attribute_extraction import get_attributes
 from app.services.attribute_normalization import get_normalized_attributes
+from app.services.llm_retry import is_daily_token_limit
+from app.services.review import defer_llm_quota_exhausted
 
 router = APIRouter(tags=["attributes"])
 
@@ -31,6 +33,13 @@ def extract_product_attribute_values(
         db.rollback()
         message = errors[0]
         lowered = message.lower()
+        if is_daily_token_limit(message):
+            defer_llm_quota_exhausted(db, product_id, message=message, stage="extraction")
+            db.commit()
+            raise HTTPException(
+                status_code=409,
+                detail={"issue_type": "LLM_QUOTA_EXHAUSTED", "message": message},
+            )
         status = (
             404
             if "not found" in lowered or "not been indexed" in lowered

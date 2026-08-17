@@ -266,6 +266,31 @@ def test_extract_without_index_returns_404(client):
     assert "indexed" in response.json()["detail"].lower()
 
 
+def test_extract_tpd_returns_conflict_and_defers_review(client):
+    _prepare_researched_product(client)
+    fetched = FetchedDocument(
+        url="https://www.diablotools.com/products/DCB518ASTS06G",
+        content_bytes=ATTRIBUTE_HTML.encode("utf-8"),
+        content_type="text/html",
+        final_url="https://www.diablotools.com/products/DCB518ASTS06G",
+    )
+    with patch("app.services.indexing.fetch_url", return_value=fetched):
+        assert client.post("/products/1/index").status_code == 200
+    tpd = RuntimeError(
+        "Error code: 429 - Rate limit reached on tokens per day (TPD)."
+    )
+    with patch("app.services.attribute_extraction.invoke_attribute_llm", side_effect=tpd):
+        response = client.post("/products/1/attributes/extract")
+    assert response.status_code == 409
+    assert response.json()["detail"]["issue_type"] == "LLM_QUOTA_EXHAUSTED"
+    assert client.get("/products/1").json()["status"] == "REVIEW_REQUIRED"
+    queue = client.get("/review-queue", params={"product_id": 1}).json()
+    quota = [item for item in queue["items"] if item["issue_type"] == "LLM_QUOTA_EXHAUSTED"]
+    assert quota
+    assert quota[0]["attribute"] == "Extraction"
+    assert client.get("/products/1/attributes").status_code == 404
+
+
 def test_retrieve_evidence_uses_one_search(client):
     _prepare_researched_product(client)
     fetched = FetchedDocument(

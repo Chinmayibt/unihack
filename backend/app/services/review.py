@@ -36,6 +36,7 @@ from app.schemas.review import (
     ISSUE_LLM_QUOTA_EXHAUSTED,
     ISSUE_LOW_CLASSIFICATION_CONFIDENCE,
     ISSUE_NO_AUTHORITATIVE_SOURCE,
+    ISSUE_SOURCE_FETCH_FAILED,
     ReviewCandidate,
     ReviewDetail,
     ReviewProductSummary,
@@ -128,10 +129,52 @@ def defer_llm_quota_exhausted(
         product_id=product_id,
         issue_type=ISSUE_LLM_QUOTA_EXHAUSTED,
         severity=SEVERITY_HIGH,
-        attribute="Understanding",
+        attribute=stage.title(),
         reason=reason,
         status=STATUS_PENDING,
         diagnostics={"stage": stage, "quota": "TPD"},
+    )
+    db.add(row)
+    db.flush()
+    return row
+
+
+def defer_source_fetch_failed(
+    db: Session,
+    product_id: int,
+    *,
+    message: str,
+    source_url: str | None = None,
+) -> ReviewQueueRecord | None:
+    """Park unavailable external evidence in review without creating a document."""
+    product = db.get(ProductRecord, product_id)
+    if product is None:
+        return None
+    product.status = ProductStatus.REVIEW_REQUIRED.value
+    product.updated_at = _utcnow()
+    reason = message or "The manufacturer source could not be fetched."
+    existing = (
+        db.query(ReviewQueueRecord)
+        .filter(
+            ReviewQueueRecord.product_id == product_id,
+            ReviewQueueRecord.issue_type == ISSUE_SOURCE_FETCH_FAILED,
+            ReviewQueueRecord.status.in_(list(OPEN_STATUSES)),
+        )
+        .one_or_none()
+    )
+    diagnostics = {"source_url": source_url} if source_url else {}
+    if existing is not None:
+        existing.reason = reason
+        existing.diagnostics = diagnostics
+        return existing
+    row = ReviewQueueRecord(
+        product_id=product_id,
+        issue_type=ISSUE_SOURCE_FETCH_FAILED,
+        severity=SEVERITY_HIGH,
+        attribute="Manufacturer Source",
+        reason=reason,
+        status=STATUS_PENDING,
+        diagnostics=diagnostics,
     )
     db.add(row)
     db.flush()

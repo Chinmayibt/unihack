@@ -573,3 +573,81 @@ def test_understanding_tpd_does_not_retry_within_job(client):
     assert body["failed"] == 0
     assert body["review_required"] == 1
     assert calls["n"] == 1
+
+
+def test_extraction_tpd_defers_review_once_and_continues_job(client):
+    _upload_one(client, mpn="TPD-EXTRACT-001")
+    _upload_one(client, mpn="OK-EXTRACT-002")
+    extraction_calls = {1: 0, 2: 0}
+    from app.services.attribute_extraction import extract_product_attributes as original
+
+    def maybe_tpd(product_id, db):
+        extraction_calls[product_id] += 1
+        if product_id == 1:
+            raise RuntimeError(TPD_ERROR)
+        return original(product_id, db)
+
+    with patch("app.agents.graph.invoke_understanding_llm", return_value=_llm()), patch(
+        "app.services.research.search_web", side_effect=_search_for_query
+    ), patch("app.services.indexing.fetch_url_cached", return_value=_fetched()), patch(
+        "app.agents.graph.extract_product_attributes", side_effect=maybe_tpd
+    ), patch(
+        "app.services.attribute_extraction.invoke_attribute_llm",
+        return_value=test_attributes.INVENTED_LLM,
+    ):
+        response = client.post("/jobs", json={"auto_start": True, "generate_output": False})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["failed"] == 0
+    assert body["processed"] == 2
+    assert body["review_required"] >= 1
+    assert extraction_calls == {1: 1, 2: 1}
+    assert client.get("/products/1").json()["status"] == "REVIEW_REQUIRED"
+    assert client.get("/products/2").json()["status"] != "FAIL"
+
+    queue = client.get("/review-queue", params={"product_id": 1}).json()
+    assert any(item["issue_type"] == "LLM_QUOTA_EXHAUSTED" for item in queue["items"])
+    errors = client.get(f"/jobs/{body['job_id']}/errors").json()
+    quota_errors = [item for item in errors if item["stage"] == "extraction"]
+    assert len(quota_errors) == 1
+    assert quota_errors[0]["error_type"] == "LLM_QUOTA_EXHAUSTED"
+    assert quota_errors[0]["status"] == "DEFERRED"
+    stages = client.get(f"/jobs/{body['job_id']}/products/1/stages").json()
+    assert stages["stages"]["extraction"] == "FAILED"
+    assert stages["stages"]["normalization"] == "SKIPPED"
+    assert stages["stages"]["validation"] == "SKIPPED"
+
+
+def test_manufacturer_fetch_failure_defers_source_review_and_continues_job(client):
+    _upload_one(client, mpn="FETCH-FAIL-001")
+    _upload_one(client, mpn="FETCH-OK-002")
+    fetched_calls = {"n": 0}
+
+    def fetch_by_product(*args, **kwargs):
+        fetched_calls["n"] += 1
+        if fetched_calls["n"] == 1:
+            raise RuntimeError("upstream unavailable")
+        return _fetched()
+
+    with patch("app.agents.graph.invoke_understanding_llm", return_value=_llm()), patch(
+        "app.services.research.search_web", side_effect=_search_for_query
+    ), patch("app.services.indexing.fetch_url_cached", side_effect=fetch_by_product), patch(
+        "app.services.attribute_extraction.invoke_attribute_llm",
+        return_value=test_attributes.INVENTED_LLM,
+    ):
+        response = client.post("/jobs", json={"auto_start": True, "generate_output": False})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["failed"] == 0
+    assert body["processed"] == 2
+    assert client.get("/products/1").json()["status"] == "REVIEW_REQUIRED"
+    assert client.get("/products/2").json()["status"] != "FAIL"
+    queue = client.get("/review-queue", params={"product_id": 1}).json()
+    source_issues = [item for item in queue["items"] if item["issue_type"] == "SOURCE_FETCH_FAILED"]
+    assert len(source_issues) == 1
+    assert "fetch failed" in source_issues[0]["reason"].lower()
+    errors = client.get(f"/jobs/{body['job_id']}/errors").json()
+    source_errors = [item for item in errors if item["stage"] == "rag"]
+    assert len(source_errors) == 1
+    assert source_errors[0]["status"] == "DEFERRED"
+    assert source_errors[0]["error_type"] == "SourceFetchFailedError"

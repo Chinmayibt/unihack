@@ -45,7 +45,12 @@ from app.schemas.job import (
 )
 from app.schemas.source import SOURCE_MANUFACTURER
 from app.services.llm_retry import classify_llm_error, is_daily_token_limit
-from app.services.review import defer_llm_quota_exhausted, pending_reviews, sync_review_queue
+from app.services.review import (
+    defer_llm_quota_exhausted,
+    defer_source_fetch_failed,
+    pending_reviews,
+    sync_review_queue,
+)
 
 
 def _utcnow() -> datetime:
@@ -74,6 +79,14 @@ class PipelineResult:
     chunks_retrieved: int = 0
     attributes_extracted: int = 0
     error: str | None = None
+
+
+class SourceFetchFailedError(RuntimeError):
+    def __init__(self, source_url: str | None):
+        self.source_url = source_url
+        super().__init__(
+            f"Manufacturer website fetch failed{f' for {source_url}' if source_url else ''}"
+        )
 
 
 def _invoke(build_graph, db: Session, product_id: int) -> dict:
@@ -231,7 +244,7 @@ def _run_stage_body(db: Session, product_id: int, stage: str) -> StageOutcome:
         payload = result.get("index_result") or {}
         status = payload.get("status")
         if status == "FETCH_FAILED":
-            raise RuntimeError("Manufacturer website fetch failed")
+            raise SourceFetchFailedError(payload.get("source_url"))
         if status == "NO_MANUFACTURER_SOURCE":
             return StageOutcome(status=STAGE_SKIPPED, skipped=True)
         return StageOutcome(
@@ -311,8 +324,8 @@ def _record_error(
     )
 
 
-def _is_understanding_quota_exhausted(stage: str, exc: Exception) -> bool:
-    return stage == "understanding" and is_daily_token_limit(exc)
+def _is_llm_quota_exhausted(stage: str, exc: Exception) -> bool:
+    return stage in {"understanding", "extraction"} and is_daily_token_limit(exc)
 
 
 def _skip_remaining_stages(
@@ -401,7 +414,7 @@ def process_product_pipeline(db: Session, job_id: str, product_id: int) -> Pipel
                 run.error_message = str(exc)
                 run.duration_ms = round((perf_counter() - stage_started) * 1000, 3)
                 run.completed_at = _utcnow()
-                if _is_understanding_quota_exhausted(stage, exc):
+                if _is_llm_quota_exhausted(stage, exc):
                     defer_llm_quota_exhausted(db, product_id, message=str(exc), stage=stage)
                     _record_error(
                         db, job_id, product_id, stage, exc, attempt, status="DEFERRED"
@@ -411,7 +424,27 @@ def process_product_pipeline(db: Session, job_id: str, product_id: int) -> Pipel
                         job_id,
                         product_id,
                         after=stage,
-                        reason="Skipped: LLM quota exhausted during understanding",
+                        reason=f"Skipped: LLM quota exhausted during {stage}",
+                    )
+                    db.commit()
+                    totals.duration_ms = round((perf_counter() - started) * 1000, 3)
+                    totals.item_status = _item_status_for_product(db, product_id)
+                    totals.error = str(exc)
+                    return totals
+                if isinstance(exc, SourceFetchFailedError):
+                    defer_source_fetch_failed(
+                        db,
+                        product_id,
+                        message=str(exc),
+                        source_url=exc.source_url,
+                    )
+                    _record_error(db, job_id, product_id, stage, exc, attempt, status="DEFERRED")
+                    _skip_remaining_stages(
+                        db,
+                        job_id,
+                        product_id,
+                        after=stage,
+                        reason="Skipped: manufacturer source fetch failed",
                     )
                     db.commit()
                     totals.duration_ms = round((perf_counter() - started) * 1000, 3)
