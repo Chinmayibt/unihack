@@ -394,14 +394,6 @@ def _no_manufacturer_draft(db: Session, product: ProductRecord) -> ReviewDraft |
 
 
 def _quota_exhausted_draft(db: Session, product: ProductRecord) -> ReviewDraft | None:
-    understood = (
-        db.query(ProductUnderstandingRecord)
-        .filter(ProductUnderstandingRecord.product_id == product.id)
-        .first()
-        is not None
-    )
-    if understood:
-        return None
     row = (
         db.query(ReviewQueueRecord)
         .filter(
@@ -413,6 +405,16 @@ def _quota_exhausted_draft(db: Session, product: ProductRecord) -> ReviewDraft |
     )
     if row is None:
         return None
+    stage = ((_diagnostics(row).get("stage") if row.diagnostics else None) or "").lower()
+    if stage != "extraction":
+        understood = (
+            db.query(ProductUnderstandingRecord)
+            .filter(ProductUnderstandingRecord.product_id == product.id)
+            .first()
+            is not None
+        )
+        if understood:
+            return None
     return ReviewDraft(
         product_id=product.id,
         issue_type=ISSUE_LLM_QUOTA_EXHAUSTED,

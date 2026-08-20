@@ -706,14 +706,15 @@ def run_processing_job(db: Session, job_id: str) -> ProcessingJobRecord:
                         _refresh_job_counts(db, job)
                         db.commit()
         job = db.get(ProcessingJobRecord, job_id)
-        if job is not None and job.generate_output:
-            output = generate_output(db)
-            job.output_file = output.output_file
-        job = db.get(ProcessingJobRecord, job_id)
         if job is not None:
             job.status = JOB_COMPLETED
             job.completed_at = _utcnow()
             _refresh_job_counts(db, job)
+            db.commit()
+        job = db.get(ProcessingJobRecord, job_id)
+        if job is not None and job.generate_output:
+            output = generate_output(db, job=job)
+            job.output_file = output.output_file
             db.commit()
     except Exception:
         job = db.get(ProcessingJobRecord, job_id)

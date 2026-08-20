@@ -419,3 +419,44 @@ def test_research_api_empty_search_is_not_pipeline_failure(client):
     assert body["review_scope"] == "source_discovery"
     product = client.get("/products/1").json()
     assert product["status"] == "NO_AUTHORITATIVE_SOURCE"
+
+
+def test_search_web_times_out_instead_of_hanging():
+    import time
+
+    from app.services import web_search
+
+    class HangClient:
+        def text(self, query, max_results=8):
+            time.sleep(30)
+            return [{"href": "https://example.com", "title": "late", "body": "late"}]
+
+    token = web_search._active_client.set(HangClient())
+    try:
+        started = time.perf_counter()
+        with patch.object(web_search, "SEARCH_TIMEOUT_SECONDS", 0.2):
+            hits = web_search.search_web("hanging query")
+        elapsed = time.perf_counter() - started
+    finally:
+        web_search._active_client.reset(token)
+    assert hits == []
+    assert elapsed < 2.0
+
+
+def test_parallel_search_batch_does_not_wait_forever():
+    import time
+
+    from app.services import research
+
+    def hang(query: str):
+        time.sleep(30)
+        return query, [], 30000.0
+
+    started = time.perf_counter()
+    with patch.object(research, "SEARCH_TIMEOUT_SECONDS", 0.2), patch.object(
+        research, "_timed_search_web", side_effect=hang
+    ):
+        batch, _count = research._search_parallel_batch(["a", "b"], set())
+    elapsed = time.perf_counter() - started
+    assert len(batch) == 2
+    assert elapsed < 3.0

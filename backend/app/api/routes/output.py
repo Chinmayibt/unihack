@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
 from app.database.models import ProductRecord
 from app.schemas.final_output import FinalProductEnvelope, OutputGenerateResponse
 from app.services.output_assemble import assemble_output
-from app.services.output_generate import generate_output
+from app.services.output_generate import (
+    OutputNotReadyError,
+    generate_output,
+    resolve_output_job,
+)
 
 router = APIRouter(tags=["output"])
 
@@ -24,6 +28,21 @@ def read_product_output(product_id: int, db: Session = Depends(get_db)) -> Final
 
 
 @router.post("/output/generate", response_model=OutputGenerateResponse)
-def generate_delivery_output(db: Session = Depends(get_db)) -> OutputGenerateResponse:
-    result = generate_output(db)
-    return result
+def generate_delivery_output(
+    job_id: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> OutputGenerateResponse:
+    try:
+        job = resolve_output_job(db, job_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OutputNotReadyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": str(exc),
+                "job_id": exc.job_id,
+                "job_status": exc.job_status,
+            },
+        ) from exc
+    return generate_output(db, job=job)

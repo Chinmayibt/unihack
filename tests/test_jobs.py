@@ -338,6 +338,65 @@ def test_rate_limit_retry_parses_wait():
     assert calls["n"] == 1
 
 
+def test_tpd_switches_to_backup_groq_key():
+    from app.services import chat_llm, groq_keys, llm_retry
+
+    groq_keys.reset_groq_key_index()
+    chat_llm.reset_llm_provider()
+    keys_used: list[str] = []
+
+    def fake_keys():
+        return ["primary-key", "backup-key"]
+
+    def run():
+        key = groq_keys.groq_api_key()
+        keys_used.append(key or "")
+        if key == "primary-key":
+            raise RuntimeError(
+                "Error code: 429 - tokens per day (TPD): Limit 200000. "
+                "Please try again in 7h0m0s."
+            )
+        return "ok"
+
+    with patch.object(groq_keys, "groq_api_keys", side_effect=fake_keys):
+        groq_keys.reset_groq_key_index()
+        chat_llm.reset_llm_provider()
+        assert llm_retry.call_with_rate_limit_retry(run) == "ok"
+    assert keys_used == ["primary-key", "backup-key"]
+    groq_keys.reset_groq_key_index()
+    chat_llm.reset_llm_provider()
+
+
+def test_tpd_falls_over_to_openrouter_after_groq_keys(monkeypatch):
+    from app.services import chat_llm, groq_keys, llm_retry
+
+    groq_keys.reset_groq_key_index()
+    chat_llm.reset_llm_provider()
+    providers: list[str] = []
+
+    def fake_keys():
+        return ["only-groq"]
+
+    def run():
+        providers.append("openrouter" if chat_llm.use_openrouter() else "groq")
+        if not chat_llm.use_openrouter():
+            raise RuntimeError(
+                "Error code: 429 - tokens per day (TPD): Limit 200000. "
+                "Please try again in 7h0m0s."
+            )
+        return "ok"
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    with patch.object(groq_keys, "groq_api_keys", side_effect=fake_keys):
+        groq_keys.reset_groq_key_index()
+        chat_llm.reset_llm_provider()
+        assert llm_retry.call_with_rate_limit_retry(run) == "ok"
+    assert providers == ["groq", "openrouter"]
+    chat_llm.reset_llm_provider()
+    groq_keys.reset_groq_key_index()
+
+
 def test_llm_metrics_split_request_wait_and_cooldown():
     import threading
     import time
@@ -607,6 +666,8 @@ def test_extraction_tpd_defers_review_once_and_continues_job(client):
 
     queue = client.get("/review-queue", params={"product_id": 1}).json()
     assert any(item["issue_type"] == "LLM_QUOTA_EXHAUSTED" for item in queue["items"])
+    breakdown = client.get(f"/jobs/{body['job_id']}/review-breakdown").json()
+    assert breakdown["by_issue_type"].get("LLM_QUOTA_EXHAUSTED", 0) >= 1
     errors = client.get(f"/jobs/{body['job_id']}/errors").json()
     quota_errors = [item for item in errors if item["stage"] == "extraction"]
     assert len(quota_errors) == 1
@@ -616,6 +677,41 @@ def test_extraction_tpd_defers_review_once_and_continues_job(client):
     assert stages["stages"]["extraction"] == "FAILED"
     assert stages["stages"]["normalization"] == "SKIPPED"
     assert stages["stages"]["validation"] == "SKIPPED"
+    db, gen = _db(client)
+    try:
+        assert db.query(ProductAttributeRecord).filter_by(product_id=1).count() == 0
+    finally:
+        _close_db(db, gen)
+
+
+def test_extraction_tpd_review_survives_queue_sync(client):
+    _upload_one(client, mpn="TPD-EXTRACT-SYNC-001")
+
+    def boom(_product_id, _db):
+        raise RuntimeError(TPD_ERROR)
+
+    with patch("app.agents.graph.invoke_understanding_llm", return_value=_llm()), patch(
+        "app.services.research.search_web", side_effect=_search_for_query
+    ), patch("app.services.indexing.fetch_url_cached", return_value=_fetched()), patch(
+        "app.agents.graph.extract_product_attributes", side_effect=boom
+    ):
+        response = client.post("/jobs", json={"auto_start": True, "generate_output": False})
+    assert response.status_code == 200
+    assert response.json()["failed"] == 0
+
+    db, gen = _db(client)
+    try:
+        from app.services.review import sync_review_queue
+
+        sync_review_queue(db, 1)
+        db.commit()
+    finally:
+        _close_db(db, gen)
+
+    queue = client.get("/review-queue", params={"product_id": 1}).json()
+    quota = [item for item in queue["items"] if item["issue_type"] == "LLM_QUOTA_EXHAUSTED"]
+    assert len(quota) == 1
+    assert quota[0]["attribute"] == "Extraction"
 
 
 def test_manufacturer_fetch_failure_defers_source_review_and_continues_job(client):

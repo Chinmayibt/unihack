@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import TypeVar
 
 from app.core.config import settings
+from app.services.chat_llm import advance_provider_on_quota
 
 T = TypeVar("T")
 
@@ -59,7 +60,14 @@ def is_rate_limit_error(exc: BaseException) -> bool:
 
 def is_daily_token_limit(exc: BaseException) -> bool:
     text = str(exc).lower()
-    return "tokens per day" in text or "tpd" in text
+    return (
+        "tokens per day" in text
+        or "tpd" in text
+        or "insufficient credits" in text
+        or "credit limit" in text
+        or "quota exceeded" in text
+        or "usage limit" in text
+    )
 
 
 def retry_delay_seconds(exc: BaseException, attempt: int) -> float:
@@ -150,6 +158,8 @@ def _call_with_retries(
             except Exception as exc:
                 request_ms += (time.perf_counter() - started) * 1000.0
                 last_error = exc
+                if is_daily_token_limit(exc) and advance_provider_on_quota():
+                    continue
                 if not should_retry_rate_limit(exc) or attempt >= attempts_allowed - 1:
                     raise
                 delay = retry_delay_seconds(exc, attempt) if apply_cooldown else 0.0

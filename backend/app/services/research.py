@@ -45,7 +45,7 @@ from app.schemas.source import (
 )
 from app.services.entity_normalize import normalize_entity_name
 from app.services.text_display import compact_alnum, preserve_display_text
-from app.services.web_search import SearchHit, search_web, web_search_session
+from app.services.web_search import SEARCH_TIMEOUT_SECONDS, SearchHit, search_web, web_search_session
 
 REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
 
@@ -410,11 +410,21 @@ def _search_parallel_batch(
         return [_search_query(queries[0], seen_urls)], 0
 
     by_query: dict[str, tuple[list[SearchHit], float]] = {}
-    with ThreadPoolExecutor(max_workers=len(queries)) as pool:
+    timeout = max(1.0, SEARCH_TIMEOUT_SECONDS + 1.0)
+    pool = ThreadPoolExecutor(max_workers=len(queries))
+    try:
         futures = {pool.submit(_timed_search_web, query): query for query in queries}
-        for future in as_completed(futures):
-            query, raw_hits, duration_ms = future.result()
-            by_query[query] = (raw_hits, duration_ms)
+        try:
+            for future in as_completed(futures, timeout=timeout):
+                query, raw_hits, duration_ms = future.result(timeout=0.1)
+                by_query[query] = (raw_hits, duration_ms)
+        except TimeoutError:
+            pass
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+    for query in queries:
+        if query not in by_query:
+            by_query[query] = ([], round(timeout * 1000.0, 3))
 
     ordered: list[tuple[list[SearchHit], ResearchQueryTiming]] = []
     for query in queries:

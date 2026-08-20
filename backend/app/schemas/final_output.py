@@ -118,4 +118,5 @@ class OutputGenerateResponse(BaseModel):
     review_pending: int = 0
     skipped: int = 0
     output_file: str | None = None
+    job_id: str | None = None
     errors: list[str] = Field(default_factory=list)

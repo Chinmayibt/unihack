@@ -226,10 +226,15 @@ def test_human_override_is_final_value_with_ai_audit(client):
 
 def test_output_generate_api(client):
     _prepare_processed(client)
+    created = client.post("/jobs", json={"auto_start": True, "generate_output": False})
+    assert created.status_code == 200
+    assert created.json()["status"] == "COMPLETED"
+    job_id = created.json()["job_id"]
     response = client.post("/output/generate")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "COMPLETED"
+    assert body["job_id"] == job_id
     assert body["total_products"] == 1
     assert body["partial"] == 1
     assert body["output_file"]
@@ -241,3 +246,121 @@ def test_output_generate_api(client):
     assert len(rows) == 1
     assert rows[0]["ATTRIBUTE_VALUE 2"] == "1/2"
     assert rows[0]["ATTRIBUTE_UOM 2"] == "in"
+
+
+def _output_conflict_message(response) -> str:
+    detail = response.json()["detail"]
+    if isinstance(detail, dict):
+        return str(detail.get("message") or "")
+    return str(detail)
+
+
+def test_output_generate_rejects_running_job(client):
+    import test_jobs
+    from app.database.models import ProcessingJobRecord
+    from app.schemas.job import JOB_RUNNING
+    from app.services.output_generate import default_output_path
+
+    test_jobs._upload_one(client)
+    created = client.post("/jobs", json={"auto_start": False, "generate_output": False})
+    assert created.status_code == 200
+    job_id = created.json()["job_id"]
+    db, gen = test_review._db(client)
+    try:
+        job = db.get(ProcessingJobRecord, job_id)
+        assert job is not None
+        job.status = JOB_RUNNING
+        db.commit()
+    finally:
+        test_review._close_db(db, gen)
+
+    path = default_output_path()
+    before = path.read_bytes() if path.exists() else None
+    response = client.post("/output/generate")
+    assert response.status_code == 409
+    assert "COMPLETED" in _output_conflict_message(response)
+    targeted = client.post("/output/generate", params={"job_id": job_id})
+    assert targeted.status_code == 409
+    assert "COMPLETED" in _output_conflict_message(targeted)
+    if before is None:
+        assert not path.exists()
+    else:
+        assert path.read_bytes() == before
+
+
+def test_output_generate_rejects_when_no_completed_job(client):
+    from app.services.output_generate import default_output_path
+
+    path = default_output_path()
+    before = path.read_bytes() if path.exists() else None
+    response = client.post("/output/generate")
+    assert response.status_code == 409
+    assert "COMPLETED" in _output_conflict_message(response)
+    missing = client.post("/output/generate", params={"job_id": "missing-job"})
+    assert missing.status_code == 404
+    if before is None:
+        assert not path.exists()
+    else:
+        assert path.read_bytes() == before
+
+
+def test_output_generate_after_completed_job_is_job_scoped(client):
+    from unittest.mock import patch
+
+    import test_jobs
+
+    test_jobs._upload_one(client, mpn="JOB-ONLY-001")
+    test_jobs._upload_one(client, mpn="OUTSIDE-002")
+    with patch("app.agents.graph.invoke_understanding_llm", return_value=test_jobs._llm()), patch(
+        "app.services.research.search_web", return_value=test_jobs._hits("JOB-ONLY-001")
+    ), patch("app.services.indexing.fetch_url_cached", return_value=test_jobs._fetched()), patch(
+        "app.services.attribute_extraction.invoke_attribute_llm",
+        return_value=test_attributes.INVENTED_LLM,
+    ):
+        created = client.post(
+            "/jobs",
+            json={
+                "auto_start": True,
+                "generate_output": False,
+                "product_ids": [1],
+            },
+        )
+    assert created.status_code == 200
+    body = created.json()
+    assert body["status"] == "COMPLETED"
+    assert body["total"] == 1
+    assert body["processed"] == 1
+    response = client.post("/output/generate", params={"job_id": body["job_id"]})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "COMPLETED"
+    assert payload["job_id"] == body["job_id"]
+    assert payload["total_products"] == 1
+    path = Path(payload["output_file"])
+    with path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) <= 1
+    if rows:
+        assert rows[0]["Mfg_Part_Num"] == "JOB-ONLY-001"
+
+
+def test_incomplete_job_cannot_write_skipped_final_csv(client):
+    import test_jobs
+    from app.services.output_generate import default_output_path
+
+    test_jobs._upload_one(client, mpn="INCOMPLETE-001")
+    test_jobs._upload_one(client, mpn="INCOMPLETE-002")
+    created = client.post("/jobs", json={"auto_start": False, "generate_output": False})
+    assert created.json()["status"] == "QUEUED"
+    assert created.json()["total"] == 2
+    path = default_output_path()
+    before = path.read_bytes() if path.exists() else None
+    response = client.post("/output/generate")
+    assert response.status_code == 409
+    assert "COMPLETED" in _output_conflict_message(response)
+    if before is None:
+        assert not path.exists()
+    else:
+        with path.open(newline="", encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle))
+        assert len(rows) < 2
