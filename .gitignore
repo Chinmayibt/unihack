@@ -29,3 +29,7 @@ data/output/*
 
 # Docker
 postgres_data/
+
+# Local runtime junk
+backend/:memory:.ses
+**/*.ses

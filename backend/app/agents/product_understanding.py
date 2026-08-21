@@ -1,9 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
 
-from app.core.config import settings
 from app.schemas.understanding import LLMProductUnderstanding
 from app.services.cache_store import get_cached_understanding, put_cached_understanding
+from app.services.chat_llm import build_chat_llm, llm_configured
 from app.services.llm_retry import call_with_rate_limit_retry
 
 SYSTEM_PROMPT = """You are a Product Understanding Agent for an industrial
@@ -58,26 +57,22 @@ def invoke_understanding_llm(raw_product: dict) -> LLMProductUnderstanding:
     cached = get_cached_understanding(raw_product)
     if cached is not None:
         return LLMProductUnderstanding.model_validate(cached)
-    if not settings.GROQ_API_KEY:
+    if not llm_configured():
         raise MissingLLMConfigError(
-            "GROQ_API_KEY is not configured. Add it to backend/.env"
+            "LLM is not configured. Set OPENROUTER_API_KEY or GROQ_API_KEY in backend/.env"
         )
 
-    llm = ChatGroq(
-        model=settings.LLM_MODEL,
-        temperature=0,
-        api_key=settings.GROQ_API_KEY,
-    )
-    structured = llm.with_structured_output(LLMProductUnderstanding)
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", USER_TEMPLATE),
-        ]
-    )
-    chain = prompt | structured
-    result = call_with_rate_limit_retry(
-        lambda: chain.invoke(
+    def run():
+        llm = build_chat_llm(temperature=0)
+        structured = llm.with_structured_output(LLMProductUnderstanding)
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", SYSTEM_PROMPT),
+                ("human", USER_TEMPLATE),
+            ]
+        )
+        chain = prompt | structured
+        return chain.invoke(
             {
                 "mpn": raw_product.get("mpn") or "",
                 "description": raw_product.get("description") or "",
@@ -87,7 +82,8 @@ def invoke_understanding_llm(raw_product: dict) -> LLMProductUnderstanding:
                 "manufacturer": raw_product.get("manufacturer") or "",
             }
         )
-    )
+
+    result = call_with_rate_limit_retry(run)
     if isinstance(result, LLMProductUnderstanding):
         put_cached_understanding(raw_product, result.model_dump())
         return result

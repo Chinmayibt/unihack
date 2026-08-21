@@ -36,6 +36,30 @@ class Settings:
         return _env("GROQ_API_KEY")
 
     @property
+    def GROQ_API_KEY_BACKUP(self) -> str | None:
+        return _env("GROQ_API_KEY_BACKUP")
+
+    @property
+    def GROQ_API_KEY_BACKUP_2(self) -> str | None:
+        return _env("GROQ_API_KEY_BACKUP_2")
+
+    @property
+    def OPENROUTER_API_KEY(self) -> str | None:
+        return _env("OPENROUTER_API_KEY")
+
+    @property
+    def OPENROUTER_BASE_URL(self) -> str:
+        return (
+            _env("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+            or "https://openrouter.ai/api/v1"
+        )
+
+    @property
+    def LLM_PROVIDER(self) -> str | None:
+        """openrouter | groq. Empty = auto (OpenRouter if key set, else Groq)."""
+        return _env("LLM_PROVIDER")
+
+    @property
     def LLM_MODEL(self) -> str:
         return _env("LLM_MODEL", "openai/gpt-oss-120b") or "openai/gpt-oss-120b"
 

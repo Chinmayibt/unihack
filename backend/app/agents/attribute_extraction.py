@@ -1,9 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
 
 from app.agents.product_understanding import MissingLLMConfigError
-from app.core.config import settings
 from app.schemas.attribute import LLMAttributeExtraction
+from app.services.chat_llm import build_chat_llm, llm_configured
 from app.services.llm_retry import call_with_rate_limit_retry
 
 SYSTEM_PROMPT = """You are an Attribute Extraction Agent for industrial product data.
@@ -45,31 +44,29 @@ def invoke_attribute_llm(
     attribute_blocks: str,
     product_context: str = "",
 ) -> LLMAttributeExtraction:
-    if not settings.GROQ_API_KEY:
+    if not llm_configured():
         raise MissingLLMConfigError(
-            "GROQ_API_KEY is not configured. Add it to backend/.env"
+            "LLM is not configured. Set OPENROUTER_API_KEY or GROQ_API_KEY in backend/.env"
         )
-    llm = ChatGroq(
-        model=settings.LLM_MODEL,
-        temperature=0,
-        api_key=settings.GROQ_API_KEY,
-    )
-    structured = llm.with_structured_output(LLMAttributeExtraction)
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", USER_TEMPLATE),
-        ]
-    )
-    result = call_with_rate_limit_retry(
-        lambda: (prompt | structured).invoke(
+
+    def run():
+        llm = build_chat_llm(temperature=0)
+        structured = llm.with_structured_output(LLMAttributeExtraction)
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", SYSTEM_PROMPT),
+                ("human", USER_TEMPLATE),
+            ]
+        )
+        return (prompt | structured).invoke(
             {
                 "classpath": classpath or "unknown",
                 "attribute_blocks": attribute_blocks,
                 "product_context": product_context or "(none)",
             }
         )
-    )
+
+    result = call_with_rate_limit_retry(run)
     if isinstance(result, LLMAttributeExtraction):
         return result
     return LLMAttributeExtraction.model_validate(result)
