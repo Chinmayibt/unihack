@@ -79,6 +79,32 @@ class UploadResponse(BaseModel):
     missing_manufacturer: int = 0
     missing_brand: int = 0
     errors: list[RowError] = []
+    product_ids: list[int] = Field(default_factory=list)
+
+
+class ProductIntakeItem(BaseModel):
+    """Friendly JSON intake for one product (aliases map to CSV columns)."""
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    mpn: str | None = Field(default=None, alias="Mfg_Part_Num")
+    description: str | None = Field(default=None, alias="Part_Desc")
+    e1_brand: str | None = Field(default=None, alias="E1_Brand")
+    unilog_brand: str | None = Field(default=None, alias="Unilog_Brand")
+    dib_brand: str | None = Field(default=None, alias="DIB_Brand")
+    manufacturer: str | None = Field(default=None, alias="Part_Manuf")
+    index: int | None = None
+
+    def to_csv_row(self) -> dict:
+        return {
+            "index": self.index,
+            "Mfg_Part_Num": self.mpn,
+            "Part_Desc": self.description,
+            "E1_Brand": self.e1_brand,
+            "Unilog_Brand": self.unilog_brand,
+            "DIB_Brand": self.dib_brand,
+            "Part_Manuf": self.manufacturer,
+        }
 
 
 class ProductResponse(BaseModel):

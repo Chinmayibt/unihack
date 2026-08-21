@@ -171,7 +171,7 @@ def mark_duplicate_candidates(
     return len(duplicated_values)
 
 
-def persist_products(db: Session, products: list[Product]) -> None:
+def persist_products(db: Session, products: list[Product]) -> list[int]:
     records = [
         ProductRecord(
             source_index=product.source_index,
@@ -186,21 +186,22 @@ def persist_products(db: Session, products: list[Product]) -> None:
         for product in products
     ]
     db.add_all(records)
+    db.flush()
+    return [record.id for record in records]
 
 
-def ingest_csv(contents: bytes, filename: str, db: Session) -> UploadResponse:
-    df = read_csv_bytes(contents)
-    batch = parse_and_validate(df)
-
-    existing_mpns = {
-        mpn
-        for (mpn,) in db.query(ProductRecord.mpn).all()
-    }
+def _finalize_ingestion(
+    db: Session,
+    *,
+    filename: str,
+    batch: ParsedBatch,
+) -> UploadResponse:
+    existing_mpns = {mpn for (mpn,) in db.query(ProductRecord.mpn).all()}
     duplicate_mpns = mark_duplicate_candidates(batch.products, existing_mpns)
     batch.stats.duplicate_mpns = duplicate_mpns
     batch.stats.valid_rows = len(batch.products)
 
-    persist_products(db, batch.products)
+    product_ids = persist_products(db, batch.products)
 
     job_id = str(uuid.uuid4())
     db.add(
@@ -233,4 +234,91 @@ def ingest_csv(contents: bytes, filename: str, db: Session) -> UploadResponse:
         missing_manufacturer=batch.stats.missing_manufacturer,
         missing_brand=batch.stats.missing_brand,
         errors=batch.errors,
+        product_ids=product_ids,
     )
+
+
+def ingest_csv(contents: bytes, filename: str, db: Session) -> UploadResponse:
+    df = read_csv_bytes(contents)
+    batch = parse_and_validate(df)
+    return _finalize_ingestion(db, filename=filename, batch=batch)
+
+
+def _normalize_json_row(raw: dict, position: int) -> dict:
+    aliases = {
+        "mpn": "Mfg_Part_Num",
+        "mfg_part_num": "Mfg_Part_Num",
+        "description": "Part_Desc",
+        "part_desc": "Part_Desc",
+        "e1_brand": "E1_Brand",
+        "unilog_brand": "Unilog_Brand",
+        "dib_brand": "DIB_Brand",
+        "manufacturer": "Part_Manuf",
+        "part_manuf": "Part_Manuf",
+    }
+    row: dict = {}
+    for key, value in raw.items():
+        text = str(key).strip()
+        mapped = aliases.get(text.lower(), text)
+        row[mapped] = value
+    for column in REQUIRED_COLUMNS:
+        row.setdefault(column, None)
+    if "index" not in row and "Index" not in row:
+        row["index"] = position
+    return row
+
+
+def parse_json_records(payload: object) -> ParsedBatch:
+    if isinstance(payload, dict):
+        records = [payload]
+    elif isinstance(payload, list):
+        records = payload
+    else:
+        raise ValueError("JSON must be an object or an array of objects")
+
+    batch = ParsedBatch()
+    batch.stats.total_rows = len(records)
+    for position, item in enumerate(records, start=1):
+        if not isinstance(item, dict):
+            batch.errors.append(RowError(row=position, error="row must be an object"))
+            batch.stats.invalid_rows += 1
+            continue
+        row = _normalize_json_row(item, position)
+        source_index = _source_index_for_row(row, fallback=position)
+        try:
+            raw = RawProduct.model_validate(row)
+        except ValidationError as exc:
+            error = _error_from_validation(source_index, exc)
+            batch.errors.append(error)
+            batch.stats.invalid_rows += 1
+            lowered = error.error.lower()
+            if "mfg_part_num" in lowered:
+                batch.stats.missing_mpn += 1
+            if "part_desc" in lowered:
+                batch.stats.missing_description += 1
+            continue
+        product = normalize_raw_product(raw, source_index=source_index)
+        batch.products.append(product)
+        if is_missing_brand(product):
+            batch.stats.missing_brand += 1
+        if product.manufacturer is None:
+            batch.stats.missing_manufacturer += 1
+    batch.stats.valid_rows = len(batch.products)
+    return batch
+
+
+def ingest_json_payload(payload: object, filename: str, db: Session) -> UploadResponse:
+    batch = parse_json_records(payload)
+    return _finalize_ingestion(db, filename=filename, batch=batch)
+
+
+def ingest_json_bytes(contents: bytes, filename: str, db: Session) -> UploadResponse:
+    try:
+        text = contents.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("JSON must be UTF-8 encoded") from exc
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON: {exc.msg}") from exc
+    return ingest_json_payload(payload, filename, db)

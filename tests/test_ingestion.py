@@ -206,3 +206,29 @@ def test_parse_and_validate_reports_row_errors():
     assert batch.stats.invalid_rows == 1
     assert "Mfg_Part_Num is missing" in batch.errors[0].error
     assert "Part_Desc is missing" in batch.errors[0].error
+
+
+def test_upload_json_single_and_array(client):
+    single = client.post(
+        "/upload/product",
+        json={
+            "mpn": "JSON-1",
+            "description": "JSON cut-off wheel",
+            "manufacturer": "Acme",
+        },
+    )
+    assert single.status_code == 200
+    body = single.json()
+    assert body["valid_rows"] == 1
+    assert body["product_ids"]
+
+    batch = client.post(
+        "/upload/json",
+        json=[
+            {"mpn": "JSON-2", "description": "Belt A"},
+            {"Mfg_Part_Num": "JSON-3", "Part_Desc": "Belt B", "Part_Manuf": "Acme"},
+        ],
+    )
+    assert batch.status_code == 200
+    assert batch.json()["valid_rows"] == 2
+    assert len(batch.json()["product_ids"]) == 2
