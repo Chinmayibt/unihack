@@ -1,47 +1,47 @@
-# UniHack Product Intelligence — Phase 1
+# UniHack / ALETHEIA — Product Intelligence
 
-CSV upload → validate → Product objects → PostgreSQL → Product API.
+**ALETHEIA** — The Truth Layer for Industrial Product Data.
 
-This phase does **not** include agents, RAG, entity resolution, or a dashboard.
-
-```text
-CSV → FastAPI → Pandas → Pydantic → Product → SQLAlchemy → PostgreSQL → Product API
-```
-
-## Project layout
+CSV / JSON intake → agents → research → RAG → validation → HITL → delivery CSV.
 
 ```text
-backend/app/     FastAPI app, schemas, ingestion services, SQLAlchemy models
-data/input/       Sample upload CSVs
-tests/            Phase 1 ingestion tests
-docker-compose.yml
+Intake → FastAPI → LangGraph agents → PostgreSQL + Qdrant → Review UI → Output CSV
 ```
 
-## Sample input columns
+## Deploy on Render
 
-The provided dataset uses these headers:
+The repo includes a Blueprint at [`render.yaml`](render.yaml).
 
-```text
-Mfg_Part_Num
-Part_Desc
-E1_Brand
-Unilog_Brand
-DIB_Brand
-Part_Manuf
-```
+1. Push this repo to GitHub.
+2. Open [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**.
+3. Select the repo → apply `render.yaml`.
+4. When prompted, set API secrets:
+   - `GROQ_API_KEY` (and optional `GROQ_API_KEY_BACKUP`)
+   - optional `OPENROUTER_API_KEY` for Groq TPD failover
+5. Wait for **aletheia-api**, **aletheia-web**, **aletheia-db**, and **aletheia-qdrant**.
+6. Open the web service URL (e.g. `https://aletheia-web.onrender.com`).
 
-`index` is optional. If it is absent, `source_index` is assigned from the 1-based row number.
+Services created:
 
-Brand placeholders such as `-- Unbranded --` are stored as-is. Phase 1 preserves source truth; later phases resolve a canonical brand.
+| Service | Role |
+|---------|------|
+| `aletheia-api` | FastAPI (Docker) |
+| `aletheia-web` | Next.js UI |
+| `aletheia-db` | PostgreSQL |
+| `aletheia-qdrant` | Vector DB (private) |
 
-## Run locally
+If Qdrant private service is unavailable on your plan, create a [Qdrant Cloud](https://cloud.qdrant.io) cluster and set `QDRANT_URL` on `aletheia-api`.
 
-### 1. PostgreSQL
+If you rename `aletheia-api`, update `NEXT_PUBLIC_API_URL` on `aletheia-web` to match.
+
+## Local run
+
+### 1. PostgreSQL + Qdrant
 
 A local Postgres is often already bound to `localhost:5432`, so the Docker database is published on **5433**.
 
 ```bash
-docker compose up db -d
+docker compose up db qdrant -d
 ```
 
 The API connects with:
@@ -49,8 +49,6 @@ The API connects with:
 ```text
 postgresql+psycopg2://unihack:unihack@127.0.0.1:5433/unihack
 ```
-
-Run this from the repo root. If you are already in `backend/`, use `docker compose up db -d` from the parent directory.
 
 ### 2. Backend
 
@@ -64,7 +62,18 @@ uvicorn app.main:app --reload
 
 API docs: http://localhost:8000/docs
 
-### 3. Or run API + Postgres together
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+UI: http://localhost:3000
+
+### 4. Or run API + Postgres together
 
 ```bash
 docker compose up --build
@@ -81,112 +90,32 @@ curl -X POST http://localhost:8000/upload \
 curl http://localhost:8000/products/1
 ```
 
-`POST /upload` returns job statistics:
-
-```json
-{
-  "status": "success",
-  "job_id": "...",
-  "total_rows": 1000,
-  "valid_rows": 1000,
-  "invalid_rows": 0,
-  "missing_mpn": 0,
-  "missing_description": 0,
-  "duplicate_mpns": 1,
-  "missing_manufacturer": 0,
-  "missing_brand": 554
-}
-```
-
-Invalid rows are reported and skipped. Duplicate MPNs are stored and marked `DUPLICATE_CANDIDATE` — they are not merged.
-
 ## Tests
 
 ```bash
-cd backend
-source venv/bin/activate
-cd ..
-pip install -r backend/requirements.txt
-pytest
+TESTING=1 GROQ_API_KEY="" PYTHONPATH=backend ./backend/venv/bin/pytest -q
 ```
 
-Coverage:
+## LLM keys
 
-1. Valid CSV → products stored
-2. Missing column → error
-3. Missing MPN → `INVALID` (not stored)
-4. Duplicate MPN → `DUPLICATE_CANDIDATE`
-5. Empty / placeholder brands survive
-6. Special characters (`"`, `-`, `/`, `&`, `®`, `™`) survive
-
-## Phase 2 — Product Understanding
-
-Interpret an ingested product into **candidates**, without overwriting source rows.
-
-```text
-PostgreSQL product
-        ↓
-LangGraph: load → understand → save
-        ↓
-product_understanding table
-```
-
-Add your Groq key to `backend/.env`:
+Add to `backend/.env` (never commit):
 
 ```text
 GROQ_API_KEY=gsk-...
+GROQ_API_KEY_BACKUP=
+OPENROUTER_API_KEY=
 LLM_MODEL=openai/gpt-oss-120b
 ```
 
-Single product:
-
-```bash
-curl -X POST http://127.0.0.1:8000/products/1/understand
-curl http://127.0.0.1:8000/products/1/understanding
-```
-
-Start with a small batch before all 1,000:
-
-```bash
-curl -X POST "http://127.0.0.1:8000/products/understand?limit=20"
-```
-
-Source fields (`Mfg_Part_Num`, `Part_Desc`, brand columns, `Part_Manuf`) stay untouched. Brand placeholders such as `-- Unbranded --` can sit beside a `brand_candidate` like `Diablo` with `brand_conflict: true` for Phase 3.
-
-## Phase 3A — Entity Resolution
-
-Map brand and manufacturer **candidates** to canonical master entities.
+## Sample input columns
 
 ```text
-Candidate → Exact → Normalized → RapidFuzz → Canonical (only if in master data)
+Mfg_Part_Num
+Part_Desc
+E1_Brand
+Unilog_Brand
+DIB_Brand
+Part_Manuf
 ```
 
-Embeddings and LLM verification are not in this layer.
-
-```bash
-curl -X POST http://127.0.0.1:8000/products/1/resolve
-curl http://127.0.0.1:8000/products/1/entities
-```
-
-If a name is not in `data/reference/brands.json` or `manufacturers.json`, `canonical` stays `null` and status is `REVIEW_REQUIRED`. Source product fields are never overwritten.
-
-Resolve responses keep source-vs-description conflict even after a successful match:
-
-```json
-{
-  "brand_conflict": true,
-  "conflict_resolved": true
-}
-```
-
-## Phase 4 — Classification
-
-Assign `Dept / Class / Fine / Classpath` from the allowed taxonomy in `data/reference/taxonomy.json`. The classifier does not invent paths.
-
-```bash
-curl -X POST http://127.0.0.1:8000/products/1/classify
-curl http://127.0.0.1:8000/products/1/classification
-```
-
-
-
+`index` is optional. Brand placeholders such as `-- Unbranded --` are stored as-is.

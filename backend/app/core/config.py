@@ -16,16 +16,27 @@ def _env(name: str, default: str | None = None) -> str | None:
     return cleaned or None
 
 
+def normalize_database_url(url: str) -> str:
+    """Accept Render/Heroku postgres:// URLs and SQLAlchemy-friendly forms."""
+    text = (url or "").strip()
+    if text.startswith("postgres://"):
+        text = "postgresql://" + text[len("postgres://") :]
+    if text.startswith("postgresql://") and "+psycopg2://" not in text.split("://", 1)[0]:
+        text = "postgresql+psycopg2://" + text[len("postgresql://") :]
+    return text
+
+
 class Settings:
-    APP_NAME: str = "UniHack Product Intelligence"
+    APP_NAME: str = "ALETHEIA"
     APP_VERSION: str = "0.1.0"
 
     @property
     def DATABASE_URL(self) -> str:
-        return _env(
+        raw = _env(
             "DATABASE_URL",
             "postgresql+psycopg2://unihack:unihack@127.0.0.1:5433/unihack",
         ) or "postgresql+psycopg2://unihack:unihack@127.0.0.1:5433/unihack"
+        return normalize_database_url(raw)
 
     @property
     def TESTING(self) -> bool:
