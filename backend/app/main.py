@@ -1,7 +1,7 @@
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import OperationalError
 
@@ -56,6 +56,18 @@ app = FastAPI(
     description="Phase 1–12 product intelligence: ingestion through batch orchestration.",
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def strip_backend_prefix(request: Request, call_next):
+    prefix = "/api/backend"
+
+    if request.scope["path"].startswith(prefix):
+        request.scope["path"] = request.scope["path"][len(prefix):] or "/"
+        request.scope["raw_path"] = request.scope["path"].encode()
+
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
