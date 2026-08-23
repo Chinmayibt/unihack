@@ -26,10 +26,11 @@ def reset_qdrant_client() -> None:
 def get_qdrant_client() -> QdrantClient:
     global _client
     if _client is None:
-        if settings.TESTING:
+        url = (settings.QDRANT_URL or "").strip()
+        if settings.TESTING or url in {":memory:", "memory", "local"}:
             _client = QdrantClient(":memory:")
         else:
-            _client = QdrantClient(url=settings.QDRANT_URL)
+            _client = QdrantClient(url=url)
     return _client
 
 

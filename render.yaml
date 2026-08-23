@@ -1,16 +1,15 @@
-# ALETHEIA on Render
-# Dashboard → New → Blueprint → connect this repo → apply render.yaml
+# ALETHEIA — free-tier Render Blueprint
+# Dashboard → New → Blueprint → connect repo → apply this file
 #
-# After first deploy, open aletheia-api → Environment and set:
-#   GROQ_API_KEY (required unless using OpenRouter only)
-#   GROQ_API_KEY_BACKUP (optional)
-#   OPENROUTER_API_KEY (optional failover)
+# Set secrets on aletheia-api after create:
+#   GROQ_API_KEY and/or OPENROUTER_API_KEY
 #
-# Notes:
-# - Free web services sleep when idle; Starter is recommended for enrichment jobs.
-# - Qdrant is a private service (Starter). If your account cannot create pserv,
-#   use Qdrant Cloud and set QDRANT_URL on aletheia-api to that cluster URL.
-# - If you rename aletheia-api, update NEXT_PUBLIC_API_URL on aletheia-web.
+# Free limits to know:
+# - Web services sleep after ~15 min idle (cold start on next hit)
+# - Free Postgres is time-limited on Render (check current policy)
+# - No paid Qdrant service: API uses in-process Qdrant (:memory:)
+#   Vectors reset when the API instance restarts/sleeps — fine for demos
+# - If you rename aletheia-api, update NEXT_PUBLIC_API_URL on aletheia-web
 
 databases:
   - name: aletheia-db
@@ -18,21 +17,10 @@ databases:
     postgresMajorVersion: "16"
 
 services:
-  - type: pserv
-    name: aletheia-qdrant
-    runtime: image
-    plan: starter
-    image:
-      url: docker.io/qdrant/qdrant:v1.13.4
-    disk:
-      name: aletheia-qdrant-disk
-      mountPath: /qdrant/storage
-      sizeGB: 10
-
   - type: web
     name: aletheia-api
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
     healthCheckPath: /health
@@ -42,13 +30,13 @@ services:
           name: aletheia-db
           property: connectionString
       - key: QDRANT_URL
-        value: http://aletheia-qdrant:6333
+        value: ":memory:"
       - key: QDRANT_COLLECTION
         value: product_chunks
       - key: LLM_MODEL
         value: openai/gpt-oss-120b
       - key: JOB_WORKERS
-        value: "2"
+        value: "1"
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_API_KEY_BACKUP
@@ -61,7 +49,7 @@ services:
   - type: web
     name: aletheia-web
     runtime: node
-    plan: starter
+    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     startCommand: npm run start

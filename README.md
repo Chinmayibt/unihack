@@ -8,31 +8,32 @@ CSV / JSON intake → agents → research → RAG → validation → HITL → de
 Intake → FastAPI → LangGraph agents → PostgreSQL + Qdrant → Review UI → Output CSV
 ```
 
-## Deploy on Render
+## Deploy on Render (free)
 
-The repo includes a Blueprint at [`render.yaml`](render.yaml).
+The repo includes a free-tier Blueprint at [`render.yaml`](render.yaml).
 
 1. Push this repo to GitHub.
 2. Open [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**.
 3. Select the repo → apply `render.yaml`.
 4. When prompted, set API secrets:
-   - `GROQ_API_KEY` (and optional `GROQ_API_KEY_BACKUP`)
-   - optional `OPENROUTER_API_KEY` for Groq TPD failover
-5. Wait for **aletheia-api**, **aletheia-web**, **aletheia-db**, and **aletheia-qdrant**.
-6. Open the web service URL (e.g. `https://aletheia-web.onrender.com`).
+   - `GROQ_API_KEY` and/or `OPENROUTER_API_KEY`
+5. Wait for **aletheia-api**, **aletheia-web**, and **aletheia-db**.
+6. Open the web URL (e.g. `https://aletheia-web.onrender.com`).
 
-Services created:
+| Service | Plan | Role |
+|---------|------|------|
+| `aletheia-api` | free | FastAPI (Docker) |
+| `aletheia-web` | free | Next.js UI |
+| `aletheia-db` | free | PostgreSQL |
 
-| Service | Role |
-|---------|------|
-| `aletheia-api` | FastAPI (Docker) |
-| `aletheia-web` | Next.js UI |
-| `aletheia-db` | PostgreSQL |
-| `aletheia-qdrant` | Vector DB (private) |
+**Free-tier tradeoffs**
+- Services sleep after idle (~15 min); first request is slow.
+- Free Postgres on Render is time-limited — check Render’s current free DB policy.
+- No separate Qdrant server: the API uses in-memory Qdrant (`QDRANT_URL=:memory:`). RAG vectors are lost when the API restarts or sleeps. Good enough for demos; for persistence later, point `QDRANT_URL` at [Qdrant Cloud](https://cloud.qdrant.io) free cluster.
+- Keep jobs small on free (1 worker). Don’t expect a full 998-row overnight run on a sleeping free instance.
 
-If Qdrant private service is unavailable on your plan, create a [Qdrant Cloud](https://cloud.qdrant.io) cluster and set `QDRANT_URL` on `aletheia-api`.
+If you rename `aletheia-api`, update `NEXT_PUBLIC_API_URL` on `aletheia-web`.
 
-If you rename `aletheia-api`, update `NEXT_PUBLIC_API_URL` on `aletheia-web` to match.
 
 ## Local run
 
