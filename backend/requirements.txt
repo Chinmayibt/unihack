@@ -19,3 +19,10 @@ lxml
 pymupdf
 qdrant-client
 fastembed
+langgraph
+langchain
+langchain-openai
+langchain-groq
+langchain-core
+rapidfuzz
+langchain-openai
