@@ -2,14 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { statusBadge } from "@/components/StatusBadge";
 import { api, type JobSummary } from "@/lib/api";
-
-function statusBadge(status: string) {
-  if (status === "COMPLETED") return "badge badge-ok";
-  if (status === "RUNNING" || status === "QUEUED") return "badge badge-warn";
-  if (status === "FAILED") return "badge badge-danger";
-  return "badge badge-muted";
-}
 
 export default function DashboardPage() {
   const [jobs, setJobs] = useState<JobSummary[]>([]);
@@ -45,6 +39,18 @@ export default function DashboardPage() {
     }
   }
 
+  async function start(jobId: string) {
+    setBusy(jobId);
+    try {
+      await api.startJob(jobId);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start job");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <main className="fade-up space-y-6">
       {error ? (
@@ -58,7 +64,11 @@ export default function DashboardPage() {
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm text-[var(--muted)]">Latest job</p>
-              <h2 className="brand mt-1 text-2xl">{latest.dataset_name || latest.job_id}</h2>
+              <Link href={`/dashboard/${latest.job_id}`}>
+                <h2 className="brand mt-1 text-2xl hover:underline">
+                  {latest.dataset_name || latest.job_id}
+                </h2>
+              </Link>
               <p className="mt-1 font-mono text-xs text-[var(--muted)]">{latest.job_id}</p>
             </div>
             <span className={statusBadge(latest.status)}>{latest.status}</span>
@@ -130,20 +140,34 @@ export default function DashboardPage() {
           ) : null}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link className="btn btn-primary" href="/review">
+            <Link className="btn btn-primary" href={`/dashboard/${latest.job_id}`}>
+              View details & output
+            </Link>
+            <Link className="btn btn-ghost" href="/review">
               Open review queue
             </Link>
-            <button
-              className="btn btn-ghost"
-              disabled={busy === latest.job_id || latest.status !== "COMPLETED"}
-              onClick={() => void generate(latest.job_id)}
-              type="button"
-            >
-              {busy === latest.job_id ? "Generating…" : "Generate output CSV"}
-            </button>
-              <Link className="btn btn-ghost" href="/upload">
-                Open intake
-              </Link>
+            {latest.status === "QUEUED" ? (
+              <button
+                className="btn btn-ghost"
+                disabled={busy === latest.job_id || latest.total <= 0}
+                onClick={() => void start(latest.job_id)}
+                type="button"
+              >
+                {busy === latest.job_id ? "Starting…" : "Start job"}
+              </button>
+            ) : (
+              <button
+                className="btn btn-ghost"
+                disabled={busy === latest.job_id || latest.status !== "COMPLETED"}
+                onClick={() => void generate(latest.job_id)}
+                type="button"
+              >
+                {busy === latest.job_id ? "Generating…" : "Generate output CSV"}
+              </button>
+            )}
+            <Link className="btn btn-ghost" href="/upload">
+              Open intake
+            </Link>
           </div>
         </section>
       ) : (
@@ -171,14 +195,17 @@ export default function DashboardPage() {
                 <th>Progress</th>
                 <th>Approved</th>
                 <th>Review</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {jobs.map((job) => (
                 <tr key={job.job_id}>
                   <td>
-                    <div className="font-medium">{job.dataset_name || "Untitled"}</div>
-                    <div className="font-mono text-xs text-[var(--muted)]">{job.job_id}</div>
+                    <Link className="block hover:underline" href={`/dashboard/${job.job_id}`}>
+                      <div className="font-medium">{job.dataset_name || "Untitled"}</div>
+                      <div className="font-mono text-xs text-[var(--muted)]">{job.job_id}</div>
+                    </Link>
                   </td>
                   <td>
                     <span className={statusBadge(job.status)}>{job.status}</span>
@@ -188,11 +215,16 @@ export default function DashboardPage() {
                   </td>
                   <td>{job.approved}</td>
                   <td>{job.review_required}</td>
+                  <td>
+                    <Link className="btn btn-ghost" href={`/dashboard/${job.job_id}`}>
+                      View
+                    </Link>
+                  </td>
                 </tr>
               ))}
               {jobs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-[var(--muted)]">
+                  <td colSpan={6} className="text-[var(--muted)]">
                     No processing jobs found.
                   </td>
                 </tr>

@@ -11,6 +11,7 @@ httpx
 langgraph
 langchain
 langchain-groq
+langchain-openai
 langchain-core
 rapidfuzz
 ddgs

@@ -1,0 +1,205 @@
+{
+  "comment": "Classpath attribute requirements. required=true means the quality gate treats a missing value as incomplete identity, not merely optional. Flags live here so the validator does not invent them.",
+  "templates": [
+    {
+      "classpath": "Abrasives>Sanding Products>Sanding Belts",
+      "attributes": [
+        {
+          "label": "Product Type",
+          "query": "What is the product type?",
+          "required": true
+        },
+        {
+          "label": "Width",
+          "query": "What is the belt width?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "length"
+        },
+        {
+          "label": "Length",
+          "query": "What is the belt length?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "length"
+        },
+        {
+          "label": "Abrasive Material",
+          "query": "What abrasive material is used?",
+          "required": true
+        },
+        {
+          "label": "Backing Material",
+          "query": "What is the backing material?",
+          "required": false
+        },
+        {
+          "label": "Grit",
+          "query": "What is the grit?",
+          "required": false
+        },
+        {
+          "label": "Quantity",
+          "query": "What is the package quantity?",
+          "required": false,
+          "expects_uom": true,
+          "uom_family": "count"
+        },
+        {
+          "label": "Application",
+          "query": "What applications is this sanding belt used for?",
+          "required": false
+        }
+      ]
+    },
+    {
+      "classpath": "Abrasives>Sanding Products>Sanding Discs",
+      "attributes": [
+        {
+          "label": "Product Type",
+          "query": "What is the product type?",
+          "required": true
+        },
+        {
+          "label": "Diameter",
+          "query": "What is the disc diameter?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "length"
+        },
+        {
+          "label": "Abrasive Material",
+          "query": "What abrasive material is used?",
+          "required": true
+        },
+        {
+          "label": "Grit",
+          "query": "What is the grit?",
+          "required": false
+        },
+        {
+          "label": "Quantity",
+          "query": "What is the package quantity?",
+          "required": false,
+          "expects_uom": true,
+          "uom_family": "count"
+        }
+      ]
+    },
+    {
+      "classpath": "Abrasives>Cutting Products>Cut-Off Discs",
+      "attributes": [
+        {
+          "label": "Product Type",
+          "query": "What is the product type?",
+          "required": true
+        },
+        {
+          "label": "Diameter",
+          "query": "What is the disc diameter?",
+          "required": false,
+          "expects_uom": true,
+          "uom_family": "length"
+        },
+        {
+          "label": "Abrasive Material",
+          "query": "What abrasive material is used?",
+          "required": false
+        },
+        {
+          "label": "Thickness",
+          "query": "What is the disc thickness?",
+          "required": false,
+          "expects_uom": true,
+          "uom_family": "length"
+        },
+        {
+          "label": "Quantity",
+          "query": "What is the package quantity?",
+          "required": false,
+          "expects_uom": true,
+          "uom_family": "count"
+        }
+      ]
+    },
+    {
+      "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers",
+      "attributes": [
+        {
+          "label": "Product Type",
+          "query": "What is the product type?",
+          "required": true
+        },
+        {
+          "label": "Voltage",
+          "query": "What is the voltage?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "electrical_potential"
+        },
+        {
+          "label": "Amperage",
+          "query": "What is the amperage?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "electrical_current"
+        },
+        {
+          "label": "Material",
+          "query": "What is the material?",
+          "required": true
+        },
+        {
+          "label": "Sound Level",
+          "query": "What is the sound level?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "sound"
+        },
+        {
+          "label": "Wash Cycles",
+          "query": "How many wash cycles does it have?",
+          "required": false
+        },
+        {
+          "label": "Width",
+          "query": "What is the dishwasher width?",
+          "required": true,
+          "expects_uom": true,
+          "uom_family": "length"
+        }
+      ]
+    }
+  ],
+  "default": [
+    {
+      "label": "Product Type",
+      "query": "What is the product type?",
+      "required": true
+    },
+    {
+      "label": "Material",
+      "query": "What material is this product made of?",
+      "required": false
+    },
+    {
+      "label": "Size",
+      "query": "What is the product size?",
+      "required": false,
+      "expects_uom": true,
+      "uom_family": "length"
+    },
+    {
+      "label": "Quantity",
+      "query": "What is the package quantity?",
+      "required": false,
+      "expects_uom": true,
+      "uom_family": "count"
+    },
+    {
+      "label": "Application",
+      "query": "What is this product used for?",
+      "required": false
+    }
+  ]
+}

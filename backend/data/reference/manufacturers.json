@@ -1,0 +1,543 @@
+[
+  {
+    "canonical_name": "3 M Co",
+    "aliases": [
+      "3 M Co",
+      "3 M Co (5293)"
+    ]
+  },
+  {
+    "canonical_name": "A J Manufacturing Inc",
+    "aliases": [
+      "A J Manufacturing Inc",
+      "A J Manufacturing Inc (AJMAN)"
+    ]
+  },
+  {
+    "canonical_name": "ACG Brands",
+    "aliases": [
+      "ACG Brands",
+      "ACG Brands (1154)"
+    ]
+  },
+  {
+    "canonical_name": "Amana Tool Corp",
+    "aliases": [
+      "Amana Tool Corp",
+      "Amana Tool Corp (AMATO)"
+    ]
+  },
+  {
+    "canonical_name": "Appliance Dealers Cooperative",
+    "aliases": [
+      "Appliance Dealers Cooperative",
+      "Appliance Dealers Cooperative (APPDE)"
+    ]
+  },
+  {
+    "canonical_name": "Black & Decker/dewlt",
+    "aliases": [
+      "Black & Decker/dewlt",
+      "Black & Decker/dewlt (2585)"
+    ]
+  },
+  {
+    "canonical_name": "Boise Cascade Building Materials",
+    "aliases": [
+      "Boise Cascade Building Materials",
+      "Boise Cascade Building Materials (BOICA)"
+    ]
+  },
+  {
+    "canonical_name": "Bow Products",
+    "aliases": [
+      "Bow Products",
+      "Bow Products (BOWPR)"
+    ]
+  },
+  {
+    "canonical_name": "Certainteed Gypsum",
+    "aliases": [
+      "Certainteed Gypsum",
+      "Certainteed Gypsum (2765)"
+    ]
+  },
+  {
+    "canonical_name": "CMT USA Inc",
+    "aliases": [
+      "CMT USA Inc",
+      "CMT USA Inc (CMTUS)"
+    ]
+  },
+  {
+    "canonical_name": "Cooper Lighting",
+    "aliases": [
+      "Cooper Lighting",
+      "Cooper Lighting (7638)"
+    ]
+  },
+  {
+    "canonical_name": "Cooper Wiring Devices",
+    "aliases": [
+      "Cooper Wiring Devices",
+      "Cooper Wiring Devices (3560)"
+    ]
+  },
+  {
+    "canonical_name": "Edge Eyewear Inc",
+    "aliases": [
+      "Edge Eyewear Inc",
+      "Edge Eyewear Inc (EDGSA)"
+    ]
+  },
+  {
+    "canonical_name": "Emseal Joint Systems Ltd",
+    "aliases": [
+      "Emseal Joint Systems Ltd",
+      "Emseal Joint Systems Ltd (EMSJO)"
+    ]
+  },
+  {
+    "canonical_name": "Feit Electric",
+    "aliases": [
+      "Feit Electric",
+      "Feit Electric (3468)"
+    ]
+  },
+  {
+    "canonical_name": "Fenton Bros Electric Inc",
+    "aliases": [
+      "Fenton Bros Electric Inc",
+      "Fenton Bros Electric Inc (FENBR)"
+    ]
+  },
+  {
+    "canonical_name": "Festool USA",
+    "aliases": [
+      "Festool USA",
+      "Festool USA (FESTO)"
+    ]
+  },
+  {
+    "canonical_name": "First Alert - B R K Brands",
+    "aliases": [
+      "First Alert - B R K Brands",
+      "First Alert - B R K Brands (2754)"
+    ]
+  },
+  {
+    "canonical_name": "Freud Inc",
+    "aliases": [
+      "FREUD INC",
+      "Freud Inc",
+      "Freud Inc (2435)",
+      "Freud Inc.",
+      "Freud Incorporated",
+      "Freud, Inc."
+    ]
+  },
+  {
+    "canonical_name": "Hager Hinge Co",
+    "aliases": [
+      "Hager Hinge Co",
+      "Hager Hinge Co (4189)"
+    ]
+  },
+  {
+    "canonical_name": "Huber Eng Wood LLC",
+    "aliases": [
+      "Huber Eng Wood LLC",
+      "Huber Eng Wood LLC (3158)"
+    ]
+  },
+  {
+    "canonical_name": "Hunter Fan Co",
+    "aliases": [
+      "Hunter Fan Co",
+      "Hunter Fan Co (4381)"
+    ]
+  },
+  {
+    "canonical_name": "Irwin Industrial Tools",
+    "aliases": [
+      "Irwin Industrial Tools",
+      "Irwin Industrial Tools (5863)"
+    ]
+  },
+  {
+    "canonical_name": "J&G Machinery",
+    "aliases": [
+      "J&G Machinery",
+      "J&G Machinery (JGMAC)"
+    ]
+  },
+  {
+    "canonical_name": "Jam Industrial Supply LLC",
+    "aliases": [
+      "Jam Industrial Supply LLC",
+      "Jam Industrial Supply LLC (JAMIN)"
+    ]
+  },
+  {
+    "canonical_name": "JPW Industries",
+    "aliases": [
+      "JPW Industries",
+      "JPW Industries (JPWIN)"
+    ]
+  },
+  {
+    "canonical_name": "Keystone",
+    "aliases": [
+      "Keystone",
+      "Keystone (5702)"
+    ]
+  },
+  {
+    "canonical_name": "Kichler Lighting",
+    "aliases": [
+      "Kichler Lighting",
+      "Kichler Lighting (KICLI)"
+    ]
+  },
+  {
+    "canonical_name": "King Canada Inc",
+    "aliases": [
+      "King Canada Inc",
+      "King Canada Inc (KINCA)"
+    ]
+  },
+  {
+    "canonical_name": "Kreg Tool Company",
+    "aliases": [
+      "Kreg Tool Company",
+      "Kreg Tool Company (KRETO)"
+    ]
+  },
+  {
+    "canonical_name": "Leviton Mfg Co",
+    "aliases": [
+      "Leviton Mfg Co",
+      "Leviton Mfg Co (4927)"
+    ]
+  },
+  {
+    "canonical_name": "Lithonia Lighting",
+    "aliases": [
+      "Lithonia Lighting",
+      "Lithonia Lighting (2776)"
+    ]
+  },
+  {
+    "canonical_name": "Makita Usa Inc",
+    "aliases": [
+      "Makita Usa Inc",
+      "Makita Usa Inc (5142)"
+    ]
+  },
+  {
+    "canonical_name": "Malco Prod",
+    "aliases": [
+      "Malco Prod",
+      "Malco Prod (2370)"
+    ]
+  },
+  {
+    "canonical_name": "Marshalltown Trowel",
+    "aliases": [
+      "Marshalltown Trowel",
+      "Marshalltown Trowel (5155)"
+    ]
+  },
+  {
+    "canonical_name": "Maxsa Innovations",
+    "aliases": [
+      "Maxsa Innovations",
+      "Maxsa Innovations (MAXIN)"
+    ]
+  },
+  {
+    "canonical_name": "Metalmark Industrial Inc",
+    "aliases": [
+      "Metalmark Industrial Inc",
+      "Metalmark Industrial Inc (METIN)"
+    ]
+  },
+  {
+    "canonical_name": "MillerTech Energy Solutions",
+    "aliases": [
+      "MillerTech Energy Solutions",
+      "MillerTech Energy Solutions (MILTE)"
+    ]
+  },
+  {
+    "canonical_name": "Milwaukee Accessory",
+    "aliases": [
+      "Milwaukee Accessory",
+      "Milwaukee Accessory (4031)"
+    ]
+  },
+  {
+    "canonical_name": "Mirka Abrasives Inc",
+    "aliases": [
+      "Mirka Abrasives Inc",
+      "Mirka Abrasives Inc (MIRUS)"
+    ]
+  },
+  {
+    "canonical_name": "National Nail Corp",
+    "aliases": [
+      "National Nail Corp",
+      "National Nail Corp (7439)"
+    ]
+  },
+  {
+    "canonical_name": "Ohio Firewatch Protection Inc",
+    "aliases": [
+      "Ohio Firewatch Protection Inc",
+      "Ohio Firewatch Protection Inc (HOLFS)"
+    ]
+  },
+  {
+    "canonical_name": "Oliver Machinery Company",
+    "aliases": [
+      "Oliver Machinery Company",
+      "Oliver Machinery Company (OLIMA)"
+    ]
+  },
+  {
+    "canonical_name": "Palmer Donavin Mfg Company",
+    "aliases": [
+      "Palmer Donavin Mfg Company",
+      "Palmer Donavin Mfg Company (PALDO)"
+    ]
+  },
+  {
+    "canonical_name": "Parksite",
+    "aliases": [
+      "Parksite",
+      "Parksite (6151)"
+    ]
+  },
+  {
+    "canonical_name": "Phillips Lighting",
+    "aliases": [
+      "Phillips Lighting",
+      "Phillips Lighting (5831)"
+    ]
+  },
+  {
+    "canonical_name": "Police Security",
+    "aliases": [
+      "Police Security",
+      "Police Security (9470)"
+    ]
+  },
+  {
+    "canonical_name": "Prebena",
+    "aliases": [
+      "Prebena",
+      "Prebena (PREBE)"
+    ]
+  },
+  {
+    "canonical_name": "Premier Metals",
+    "aliases": [
+      "Premier Metals",
+      "Premier Metals (PREME)"
+    ]
+  },
+  {
+    "canonical_name": "Prime Wire & Cable",
+    "aliases": [
+      "Prime Wire & Cable",
+      "Prime Wire & Cable (3562)"
+    ]
+  },
+  {
+    "canonical_name": "ProVia",
+    "aliases": [
+      "ProVia",
+      "ProVia (PRODO)"
+    ]
+  },
+  {
+    "canonical_name": "Radians",
+    "aliases": [
+      "Radians",
+      "Radians (7363)"
+    ]
+  },
+  {
+    "canonical_name": "Rees Cast Stone Company",
+    "aliases": [
+      "Rees Cast Stone Company",
+      "Rees Cast Stone Company (REECA)"
+    ]
+  },
+  {
+    "canonical_name": "Rheem Manufacturing",
+    "aliases": [
+      "Rheem Manufacturing"
+    ]
+  },
+  {
+    "canonical_name": "Robt Bosch Tool Corp",
+    "aliases": [
+      "Robt Bosch Tool Corp",
+      "Robt Bosch Tool Corp (6564)"
+    ]
+  },
+  {
+    "canonical_name": "Sabre",
+    "aliases": [
+      "Sabre",
+      "Sabre (9195)"
+    ]
+  },
+  {
+    "canonical_name": "Satco Prod Inc",
+    "aliases": [
+      "Satco Prod Inc",
+      "Satco Prod Inc (5573)"
+    ]
+  },
+  {
+    "canonical_name": "Saw Stop LLC",
+    "aliases": [
+      "Saw Stop LLC",
+      "Saw Stop LLC (SAWST)"
+    ]
+  },
+  {
+    "canonical_name": "Senco Products Inc",
+    "aliases": [
+      "Senco Products Inc",
+      "Senco Products Inc (4650)"
+    ]
+  },
+  {
+    "canonical_name": "Southwire/g Turner",
+    "aliases": [
+      "Southwire/g Turner",
+      "Southwire/g Turner (6603)"
+    ]
+  },
+  {
+    "canonical_name": "Square D Con Prod Dv",
+    "aliases": [
+      "Square D Con Prod Dv",
+      "Square D Con Prod Dv (6825)"
+    ]
+  },
+  {
+    "canonical_name": "Streamlight",
+    "aliases": [
+      "Streamlight",
+      "Streamlight (7277)"
+    ]
+  },
+  {
+    "canonical_name": "Tech Gear 5.7 Inc",
+    "aliases": [
+      "Tech Gear 5.7 Inc",
+      "Tech Gear 5.7 Inc (TECGE)"
+    ]
+  },
+  {
+    "canonical_name": "Thomas & Betts",
+    "aliases": [
+      "Thomas & Betts",
+      "Thomas & Betts (7405)"
+    ]
+  },
+  {
+    "canonical_name": "U S Lumber",
+    "aliases": [
+      "U S Lumber",
+      "U S Lumber (3073)"
+    ]
+  },
+  {
+    "canonical_name": "U S Tape Company",
+    "aliases": [
+      "U S Tape Company",
+      "U S Tape Company (6694)"
+    ]
+  },
+  {
+    "canonical_name": "United Window & Door Manufacturing",
+    "aliases": [
+      "United Window & Door Manufacturing",
+      "United Window & Door Manufacturing (UNIWI)"
+    ]
+  },
+  {
+    "canonical_name": "V & V Appliance Parts Inc",
+    "aliases": [
+      "V & V Appliance Parts Inc",
+      "V & V Appliance Parts Inc (VVAPP)"
+    ]
+  },
+  {
+    "canonical_name": "Velux America Inc",
+    "aliases": [
+      "Velux America Inc",
+      "Velux America Inc (VELAM)"
+    ]
+  },
+  {
+    "canonical_name": "Vessel Tools USA Inc",
+    "aliases": [
+      "Vessel Tools USA Inc",
+      "Vessel Tools USA Inc (VESTO)"
+    ]
+  },
+  {
+    "canonical_name": "Wera Tools NA Inc",
+    "aliases": [
+      "Wera Tools NA Inc",
+      "Wera Tools NA Inc (WERTO)"
+    ]
+  },
+  {
+    "canonical_name": "Westwood Lumber Sales",
+    "aliases": [
+      "Westwood Lumber Sales",
+      "Westwood Lumber Sales (WESLU)"
+    ]
+  },
+  {
+    "canonical_name": "Whirlpool Corporation",
+    "aliases": [
+      "Whirlpool Corporation"
+    ]
+  },
+  {
+    "canonical_name": "Whiteside Machine & Repair Co",
+    "aliases": [
+      "Whiteside Machine & Repair Co",
+      "Whiteside Machine & Repair Co (WHIMA)"
+    ]
+  },
+  {
+    "canonical_name": "Woodpeckers Inc",
+    "aliases": [
+      "Woodpeckers Inc",
+      "Woodpeckers Inc (WOODP)"
+    ]
+  },
+  {
+    "canonical_name": "Woods Wire Southwire",
+    "aliases": [
+      "Woods Wire Southwire",
+      "Woods Wire Southwire (7579)"
+    ]
+  },
+  {
+    "canonical_name": "Woodstock Intl",
+    "aliases": [
+      "Woodstock Intl",
+      "Woodstock Intl (3658)"
+    ]
+  }
+]

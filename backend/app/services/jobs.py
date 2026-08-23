@@ -38,6 +38,7 @@ from app.schemas.job import (
     STAGE_SKIPPED,
     JobCreateRequest,
     JobErrorOut,
+    JobProductOut,
     JobProductStages,
     JobProfile,
     JobReport,
@@ -54,7 +55,7 @@ from app.services.pipeline import process_product_pipeline, product_stage_map
 from app.services.review import enrich_lov_diagnostics
 from app.services.cache_store import clear_classification_cache
 
-INPUT_DIR = Path(__file__).resolve().parents[3] / "data" / "input"
+INPUT_DIR = Path(__file__).resolve().parents[2] / "data" / "input"
 
 
 def _utcnow() -> datetime:
@@ -67,7 +68,7 @@ def _iso(value: datetime | None) -> str | None:
 
 def _progress(job: ProcessingJobRecord) -> float:
     if not job.total_products:
-        return 100.0
+        return 0.0
     return round(100.0 * job.processed_products / job.total_products, 1)
 
 
@@ -334,15 +335,22 @@ def job_report(job: ProcessingJobRecord) -> JobReport:
 
 
 def _eligible_products(db: Session, product_ids: list[int] | None, limit: int | None) -> list[ProductRecord]:
-    query = db.query(ProductRecord).order_by(ProductRecord.id)
+    excluded = {ProductStatus.INVALID.value}
     if product_ids:
-        query = query.filter(ProductRecord.id.in_(product_ids))
-    rows = query.all()
-    eligible = [
-        row
-        for row in rows
-        if row.status not in {ProductStatus.INVALID.value, ProductStatus.DUPLICATE_CANDIDATE.value}
-    ]
+        rows = (
+            db.query(ProductRecord)
+            .filter(ProductRecord.id.in_(product_ids))
+            .all()
+        )
+        by_id = {row.id: row for row in rows}
+        ordered = [by_id[pid] for pid in product_ids if pid in by_id]
+        # Explicit intake (single product / re-upload) must still be processable
+        # even when the MPN already exists and was marked DUPLICATE_CANDIDATE.
+        eligible = [row for row in ordered if row.status not in excluded]
+    else:
+        excluded.add(ProductStatus.DUPLICATE_CANDIDATE.value)
+        rows = db.query(ProductRecord).order_by(ProductRecord.id).all()
+        eligible = [row for row in rows if row.status not in excluded]
     if limit:
         eligible = eligible[:limit]
     return eligible
@@ -366,10 +374,17 @@ def create_job(db: Session, request: JobCreateRequest) -> ProcessingJobRecord:
         candidate = INPUT_DIR / DEFAULT_INPUT_FILE
         if candidate.exists():
             input_file = DEFAULT_INPUT_FILE
-    dataset_name = Path(input_file).name if input_file else "existing-products"
     if input_file and (request.force_ingest or existing == 0):
         _ingest_input_file(db, input_file)
     products = _eligible_products(db, request.product_ids, request.limit)
+    if not products:
+        raise ValueError("No eligible products to process")
+    if input_file:
+        dataset_name = Path(input_file).name
+    elif len(products) == 1:
+        dataset_name = products[0].mpn
+    else:
+        dataset_name = "existing-products"
     workers = request.worker_count or (1 if settings.TESTING else settings.JOB_WORKERS)
     job = ProcessingJobRecord(
         id=str(uuid.uuid4()),
@@ -774,6 +789,36 @@ def get_job(db: Session, job_id: str) -> ProcessingJobRecord:
     if job is None:
         raise LookupError(f"Job {job_id} not found")
     return job
+
+
+def list_job_products(
+    db: Session, job_id: str, skip: int = 0, limit: int = 100
+) -> tuple[int, list[JobProductOut]]:
+    query = (
+        db.query(ProcessingJobItem, ProductRecord)
+        .join(ProductRecord, ProductRecord.id == ProcessingJobItem.product_id)
+        .filter(ProcessingJobItem.job_id == job_id)
+    )
+    total = query.count()
+    rows = (
+        query.order_by(ProcessingJobItem.id)
+        .offset(max(0, skip))
+        .limit(max(1, min(limit, 500)))
+        .all()
+    )
+    items = [
+        JobProductOut(
+            product_id=product.id,
+            mpn=product.mpn,
+            description=product.description,
+            item_status=item.status,
+            product_status=product.status,
+            brand=product.e1_brand,
+            manufacturer=product.manufacturer,
+        )
+        for item, product in rows
+    ]
+    return total, items
 
 
 def list_job_errors(db: Session, job_id: str) -> list[JobErrorOut]:

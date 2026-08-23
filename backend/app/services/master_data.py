@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database.models import BrandRecord, ManufacturerRecord, TaxonomyRecord
 from app.services.entity_normalize import normalize_entity_name
 
-REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
+REFERENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "reference"
 
 
 def _load_json(name: str) -> list[dict]:

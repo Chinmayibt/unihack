@@ -21,7 +21,7 @@ from app.schemas.job import JOB_COMPLETED, JOB_PAUSED, JOB_QUEUED, JOB_RUNNING
 from app.services.output_assemble import assemble_output
 from app.services.output_validate import OutputContractError, validate_headers, validate_output_rows
 
-OUTPUT_DIR = Path(__file__).resolve().parents[3] / "data" / "output"
+OUTPUT_DIR = Path(__file__).resolve().parents[2] / "data" / "output"
 OUTPUT_REQUIRES_COMPLETED_JOB = "Output generation requires a COMPLETED job."
 _IN_FLIGHT_STATUSES = {JOB_QUEUED, JOB_RUNNING, JOB_PAUSED}
 

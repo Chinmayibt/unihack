@@ -26,6 +26,8 @@ Thumbs.db
 # Data outputs
 data/output/*
 !data/output/.gitkeep
+backend/data/output/*
+!backend/data/output/.gitkeep
 
 # Docker
 postgres_data/

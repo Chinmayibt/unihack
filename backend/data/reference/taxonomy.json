@@ -1,0 +1,135 @@
+[
+  {
+    "department": "Appliances",
+    "class_name": "Large Appliances",
+    "fine": "Dishwashers",
+    "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers",
+    "aliases": ["Dishwasher", "Built-In Dishwasher", "Built In Dishwasher"]
+  },
+  {
+    "department": "Appliances",
+    "class_name": "Kitchen Appliances",
+    "fine": "Microwaves",
+    "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Over-the-Range Microwaves",
+    "aliases": ["Microwave", "OTR Microwave", "Over the Range Microwave"]
+  },
+  {
+    "department": "Appliances",
+    "class_name": "Laundry Appliances",
+    "fine": "Dryers",
+    "classpath": "Appliances & Consumer Electronics>Laundry>Dryers",
+    "aliases": ["Dryer", "Gas Dryer", "Electric Dryer"]
+  },
+  {
+    "department": "Abrasives",
+    "class_name": "Sanding Products",
+    "fine": "Sanding Belts",
+    "classpath": "Abrasives>Sanding Products>Sanding Belts",
+    "aliases": ["Sanding Belt", "Abrasive Belt"]
+  },
+  {
+    "department": "Abrasives",
+    "class_name": "Sanding Products",
+    "fine": "Sanding Discs",
+    "classpath": "Abrasives>Sanding Products>Sanding Discs",
+    "aliases": ["Sanding Disc", "Stikit", "Abranet", "Film Disc"]
+  },
+  {
+    "department": "Abrasives",
+    "class_name": "Cutting Products",
+    "fine": "Cut-Off Discs",
+    "classpath": "Abrasives>Cutting Products>Cut-Off Discs",
+    "aliases": ["Cut Off Disc", "Cut-Off Disc", "Cut Off Discs", "Metal Cut Off Disc", "Metal Cut-Off Disc", "Metal Cut Off Wheel", "Metal Cut-Off Wheel", "Metal Cut Off Wheel - Type 1", "Metal Cut Off Wheel -type 1", "Masonry Cut Off Wheel", "Masonry Cut-Off Wheel", "Masonry Cut Off Wheel - Type 1", "Masonry Cut Off Wheel -type 1", "Performance+ Metal Cut Off Wheel", "Performance + Metal Cut Off Wheel", "Cut Off Wheel", "Cut-Off Wheel", "Cut-Off & Grinding Discs", "Cut Off & Grinding Discs"]
+  },
+  {
+    "department": "Abrasives",
+    "class_name": "Grinding Products",
+    "fine": "Grinding Wheels",
+    "classpath": "Abrasives>Grinding Products>Grinding Wheels",
+    "aliases": ["Grinding Wheel", "Metal Grinding Wheel"]
+  },
+  {
+    "department": "Power Tools",
+    "class_name": "Outdoor Power Equipment",
+    "fine": "Blowers",
+    "classpath": "Tools>Outdoor Power Equipment>Blowers",
+    "aliases": ["Blower"]
+  },
+  {
+    "department": "Power Tools",
+    "class_name": "Sanders",
+    "fine": "Belt and Spindle Sanders",
+    "classpath": "Tools>Sanders>Belt and Spindle Sanders",
+    "aliases": ["Spindle Sander", "Oscillating Edge", "Belt and Spindle Sander"]
+  },
+  {
+    "department": "Power Tool Accessories",
+    "class_name": "Saw Accessories",
+    "fine": "Saw Blades",
+    "classpath": "Tools>Power Tool Accessories>Saw Blades",
+    "aliases": ["Saw Blade"]
+  },
+  {
+    "department": "Power Tool Accessories",
+    "class_name": "Driving Accessories",
+    "fine": "Drive Bits",
+    "classpath": "Tools>Power Tool Accessories>Drive Bits",
+    "aliases": ["Drive Bit", "Torx Drive Bit", "Phillips Drive Bit"]
+  },
+  {
+    "department": "Building Materials",
+    "class_name": "Decking",
+    "fine": "Composite Decking",
+    "classpath": "Building Materials>Decking>Composite Decking",
+    "aliases": ["Decking", "PVC Decking", "Composite Decking"]
+  },
+  {
+    "department": "Building Materials",
+    "class_name": "Decking",
+    "fine": "Fascia",
+    "classpath": "Building Materials>Decking>Fascia",
+    "aliases": ["Fascia", "PVC Fascia"]
+  },
+  {
+    "department": "Building Materials",
+    "class_name": "Railing",
+    "fine": "Rail Kits",
+    "classpath": "Building Materials>Railing>Rail Kits",
+    "aliases": ["Rail Kit", "T-Rail", "Balusters", "Alum Balusters"]
+  },
+  {
+    "department": "Electrical",
+    "class_name": "Boxes and Covers",
+    "fine": "Device Covers",
+    "classpath": "Electrical>Boxes and Covers>Device Covers",
+    "aliases": ["Box Cover", "GFCI", "Duplex Box Cover"]
+  },
+  {
+    "department": "Electrical",
+    "class_name": "Lighting",
+    "fine": "Chandeliers",
+    "classpath": "Electrical>Lighting>Chandeliers",
+    "aliases": ["Chandelier", "Chandelier Lt"]
+  },
+  {
+    "department": "Electrical",
+    "class_name": "Lighting",
+    "fine": "Pendants",
+    "classpath": "Electrical>Lighting>Pendants",
+    "aliases": ["Pendant", "Pendant Lt"]
+  },
+  {
+    "department": "Electrical",
+    "class_name": "Lighting",
+    "fine": "Wall Lights",
+    "classpath": "Electrical>Lighting>Wall Lights",
+    "aliases": ["Wall Light", "Wall Lt"]
+  },
+  {
+    "department": "Electrical",
+    "class_name": "Lamps",
+    "fine": "LED Lamps",
+    "classpath": "Electrical>Lamps>LED Lamps",
+    "aliases": ["LED", "Led", "BR40"]
+  }
+]

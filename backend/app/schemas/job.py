@@ -71,6 +71,21 @@ class JobErrorOut(BaseModel):
     created_at: str | None = None
 
 
+class JobProductOut(BaseModel):
+    product_id: int
+    mpn: str
+    description: str
+    item_status: str
+    product_status: str
+    brand: str | None = None
+    manufacturer: str | None = None
+
+
+class JobProductList(BaseModel):
+    total: int = 0
+    items: list[JobProductOut] = Field(default_factory=list)
+
+
 class JobSummary(BaseModel):
     job_id: str
     status: str

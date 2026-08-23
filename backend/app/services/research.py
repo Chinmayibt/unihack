@@ -47,7 +47,7 @@ from app.services.entity_normalize import normalize_entity_name
 from app.services.text_display import compact_alnum, preserve_display_text
 from app.services.web_search import SEARCH_TIMEOUT_SECONDS, SearchHit, search_web, web_search_session
 
-REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
+REFERENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "reference"
 
 SOURCE_PRODUCT_PAGE = CONTENT_PRODUCT_PAGE
 SOURCE_SPECIFICATION = CONTENT_SPECIFICATION

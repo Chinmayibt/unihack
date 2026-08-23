@@ -199,6 +199,10 @@ textarea {
   letter-spacing: 0.06em;
 }
 
+.table tbody tr:hover td {
+  background: color-mix(in oklab, white 70%, var(--panel));
+}
+
 .fade-up {
   animation: fade-up 480ms ease both;
 }

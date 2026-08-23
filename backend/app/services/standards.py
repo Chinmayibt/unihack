@@ -10,7 +10,7 @@ _DASH_TO_SPACE = dict.fromkeys(
     map(ord, "-\u2010\u2011\u2012\u2013\u2014\u2212\u2043"), " "
 )
 
-REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
+REFERENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "reference"
 
 
 def _load_json(name: str) -> dict | list:

@@ -77,6 +77,49 @@ def test_create_job_queued_without_start(client):
     assert saved.json()["status"] == "QUEUED"
 
 
+def test_list_job_products_and_output_not_ready(client):
+    _upload_one(client)
+    created = client.post("/jobs", json={"auto_start": False}).json()
+    job_id = created["job_id"]
+    listed = client.get(f"/jobs/{job_id}/products")
+    assert listed.status_code == 200
+    body = listed.json()
+    assert body["total"] == 1
+    assert body["items"][0]["mpn"] == "DCB518ASTS06G"
+    assert body["items"][0]["product_id"] == 1
+    csv_response = client.get(f"/jobs/{job_id}/output.csv")
+    assert csv_response.status_code == 409
+
+
+def test_empty_job_is_rejected(client):
+    response = client.post("/jobs", json={"auto_start": False})
+    assert response.status_code == 400
+    assert "No eligible products" in response.json()["detail"]
+
+
+def test_explicit_duplicate_product_ids_are_eligible(client):
+    _upload_one(client)
+    second = test_ingestion._upload(
+        client,
+        test_ingestion._csv_bytes(
+            [test_ingestion._row(E1_Brand="Diablo", Part_Manuf="Freud Inc")]
+        ),
+    )
+    assert second.status_code == 200
+    ids = second.json()["product_ids"]
+    assert ids
+    assert second.json()["duplicate_mpns"] == 1
+    response = client.post(
+        "/jobs", json={"auto_start": False, "product_ids": ids}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["status"] == "QUEUED"
+    assert body["dataset_name"] == "DCB518ASTS06G"
+    assert body["progress"] == 0.0
+
+
 def test_job_processes_product_and_reports_progress(client):
     _upload_one(client)
     with patch("app.agents.graph.invoke_understanding_llm", return_value=_llm()), patch(
@@ -104,6 +147,10 @@ def test_job_processes_product_and_reports_progress(client):
     output = client.get("/products/1/output")
     assert output.status_code == 200
     assert output.json()["output"]["Mfg_Part_Num"] == "DCB518ASTS06G"
+    csv_response = client.get(f"/jobs/{body['job_id']}/output.csv")
+    assert csv_response.status_code == 200
+    assert "Mfg_Part_Num" in csv_response.text
+    assert "DCB518ASTS06G" in csv_response.text
 
 
 def test_one_product_failure_does_not_stop_job(client):

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.schemas.attribute import AttributeTemplateItem
 
-REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
+REFERENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "reference"
 
 
 def _load_templates() -> dict:

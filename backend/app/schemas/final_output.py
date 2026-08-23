@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.schemas.validation import ValidationResult
 
 REFERENCE_PATH = (
-    Path(__file__).resolve().parents[3] / "data" / "reference" / "expected_output_columns.json"
+    Path(__file__).resolve().parents[2] / "data" / "reference" / "expected_output_columns.json"
 )
 
 

@@ -10,9 +10,8 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
-COPY data/reference /data/reference
-COPY data/input /data/input
-RUN mkdir -p /data/output
+COPY backend/data ./data
+RUN mkdir -p /app/data/output
 
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000

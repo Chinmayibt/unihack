@@ -1,11 +1,17 @@
+import re
+from pathlib import Path
+
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.database.connection import SessionLocal, get_db
 from app.schemas.job import (
+    JOB_COMPLETED,
     JobCreateRequest,
     JobErrorOut,
+    JobProductList,
     JobProductStages,
     JobProfile,
     JobReport,
@@ -22,10 +28,12 @@ from app.services.jobs import (
     job_review_stats,
     job_to_summary,
     list_job_errors,
+    list_job_products,
     list_jobs,
     retry_product,
     run_processing_job,
 )
+from app.services.output_generate import generate_output
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -118,6 +126,48 @@ def read_job_report(job_id: str, db: Session = Depends(get_db)) -> JobReport:
         return job_report(get_job(db, job_id))
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/{job_id}/products", response_model=JobProductList)
+def read_job_products(
+    job_id: str,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+) -> JobProductList:
+    try:
+        get_job(db, job_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    total, items = list_job_products(db, job_id, skip=skip, limit=limit)
+    return JobProductList(total=total, items=items)
+
+
+@router.get("/{job_id}/output.csv")
+def download_job_output(job_id: str, db: Session = Depends(get_db)) -> FileResponse:
+    try:
+        job = get_job(db, job_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    path = Path(job.output_file) if job.output_file else None
+    if path is None or not path.exists():
+        if job.status != JOB_COMPLETED:
+            raise HTTPException(
+                status_code=409,
+                detail="Output is available after the job completes.",
+            )
+        result = generate_output(db, job=job)
+        if not result.output_file:
+            raise HTTPException(
+                status_code=409,
+                detail="No eligible rows to write to CSV.",
+            )
+        job.output_file = result.output_file
+        db.commit()
+        path = Path(result.output_file)
+    safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", job.dataset_name or "job").strip("_")
+    filename = f"{safe_name or 'job'}_delivery.csv"
+    return FileResponse(path, media_type="text/csv", filename=filename)
 
 
 @router.get("/{job_id}/errors", response_model=list[JobErrorOut])
