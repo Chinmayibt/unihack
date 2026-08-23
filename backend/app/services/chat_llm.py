@@ -4,7 +4,6 @@ import threading
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 
 from app.core.config import settings
 from app.services.groq_keys import advance_key_on_quota, groq_api_key
@@ -57,6 +56,8 @@ def build_chat_llm(*, temperature: float = 0) -> BaseChatModel:
             raise RuntimeError(
                 "OPENROUTER_API_KEY is not configured. Add it to backend/.env"
             )
+        from langchain_openai import ChatOpenAI
+
         return ChatOpenAI(
             model=settings.LLM_MODEL,
             temperature=temperature,
