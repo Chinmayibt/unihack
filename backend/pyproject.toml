@@ -1,0 +1,27 @@
+[project]
+name = "unihack-backend"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pandas",
+    "pydantic",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "python-multipart",
+    "python-dotenv",
+    "httpx",
+    "langgraph",
+    "langchain",
+    "langchain-core",
+    "langchain-groq",
+    "langchain-openai",
+    "rapidfuzz",
+    "ddgs",
+    "beautifulsoup4",
+    "lxml",
+    "pymupdf",
+    "qdrant-client",
+    "fastembed"
+]
