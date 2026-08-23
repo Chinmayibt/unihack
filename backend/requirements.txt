@@ -6,13 +6,12 @@ sqlalchemy
 psycopg2-binary
 python-multipart
 python-dotenv
-pytest
 httpx
 langgraph
 langchain
+langchain-core
 langchain-groq
 langchain-openai
-langchain-core
 rapidfuzz
 ddgs
 beautifulsoup4
@@ -20,10 +19,3 @@ lxml
 pymupdf
 qdrant-client
 fastembed
-langgraph
-langchain
-langchain-openai
-langchain-groq
-langchain-core
-rapidfuzz
-langchain-openai
