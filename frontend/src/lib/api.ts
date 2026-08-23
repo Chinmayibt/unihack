@@ -1,5 +1,19 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+function resolveApiBase(): string {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || "").trim().replace(/\/$/, "");
+  const invalid =
+    !raw ||
+    raw === "NEXT_PUBLIC_API_URL" ||
+    raw.includes("NEXT_PUBLIC_API_URL");
+  if (!invalid) {
+    return raw;
+  }
+  if (process.env.NODE_ENV === "development") {
+    return "http://127.0.0.1:8000";
+  }
+  return "/api/backend";
+}
+
+const API_BASE = resolveApiBase();
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
